@@ -1,0 +1,208 @@
+
+Mi tema - Energía Renovable y Certificados Verdes con Blockchain.
+
+ Tecnologias a usar: Node.js, Next.js (typescript, Tailwind CSS), foundry, metamask
+
+Tu aplicación final debe implementar:
+
+1) Sistema transparente y seguro para rastrear productos desde origen hasta consumidor final
+2) Tokenización de materias primas y productos terminados
+3) Flujo controlado entre actores: Producer -> Factory -> Retailer -> Consumer 
+4) Gestión de roles con aprobación por administrador
+5) Interfaz intuitiva para todos los roles del sistema
+
+I) Producer
+     Función: Registra materias primas
+     Permisos: Crear tokens de materias primas, transfiere unicamente al factory.
+     Ejemplo: granjas minas, productores
+	 Nota: produce token inicial
+
+II) Factory
+	 Función: Transforma materias primas en productos terminados.
+	 Permisos: Recibir de produces, crear productos derivados, transferir solo a retailers.
+	 Ejemplos: plantas procesadores, plantas generadoras, manufactureras
+	 Nota: puede producir nuevos token en base al token de Producer (token heredado)
+
+
+III) Retailer (minorista)
+      Función: Distribuye productos a consumidores
+      Permisos: Recibe de factory y puedo transferiri unicamente a consumers
+      Ejemplo: tiendas, supermercados, distribuidores
+	  Nota: distribuye tokens del factory 
+
+IV) Consumer
+     Función: punto final de la cadena
+	 Permisos: Recibir y consumir productos, consultar trazabilidad completa.
+	 Ejemplo: Usuarios finales, clientes.
+	 Nota: Consume tokens del retailer
+	 
+V) Administrator (Admin)
+     Función: Gestiona el sistema y aprueba o rechaza usuarios
+	 Permisos: aprobar/rechazar registro de usuarios, supervisar sistema (monitoreo)
+	 Ejemplo: Rol unico del creador del contrato.
+	 
+   
+ Configuracion del proyecto 
+ 
+ 1) Carpeta  sc/ - Proyecto de foundry (smart contract)
+    - Usar anvil para desarrollo
+    - Una cuenta de anvil para el administrador (puede ser el creador del contrato, me parece  que si)
+	- Usar cuentas de anvil en el restro de usuarios: retails, Producers, factory, consumers
+	- Plantear el contrato con el estadar ERC-1155
+ 
+ 2) Carpeta web/ - Proyecto web Next.js
+ 
+ Paginas principales
+ 
+   - Pagina principal
+    - No conectado: invitacion a conectar a metamask
+	  - Conectado pero no registrado: formulario sencillo de registro por rol
+	  - Conectado y pendiente: En estado de espera de aprobacion por parte del administrador
+	  - Conectado y aprobado: Bienvenida con acceso al dashboard
+	  - Rechazado y cancelado tambien deben considerarse.
+	 
+   - Dashboard
+     - Resumen personalizado segun el rol
+	   - Estadísticas sencillas de tokens y transferencias (historicos), en el caso del consumer: Energía Total Consumida, retail: Energía Total vendida
+	   - Accesos rápidos a funcionalidades principales (siempre que sean de utilidad)
+	 
+   - Tokens
+     - Lista de tokens propiedad del usuario
+	   - Crear token (/tokens/create)
+	   - Detalles (/tokens/[id])
+	   - Transferir (/tokens/[id]/transfer)
+	 
+   - Transfers
+     - Pendientes de aceptacion
+	   - Historial completo
+	   - Acciones: aceptar/rechazar
+	
+   - Admin
+    - Panel de administracion del sistema
+	  - Gestion de usuario (/admin/users)
+	 
+   - Profile
+     - Informacion del usuario 
+	   - Portafolio de tokens
+	
+
+Posible estructura de proyecto web
+	
+     web/                         # Frontend Next.js (TU TAREA)
+     ├── src/
+     │   ├── app/                 # TODAS LAS PÁGINAS A IMPLEMENTAR
+     │   ├── components/          # COMPONENTES REACT A CREAR
+     │   ├── contexts/            # WEB3 PROVIDER A PROGRAMAR
+     │   ├── hooks/               # CUSTOM HOOKS A DESARROLLAR
+     │   ├── lib/                 # SERVICIOS WEB3 A IMPLEMENTAR
+     │   └── contracts/           # ABI Y CONFIGURACIÓN A CREAR
+     ├── package.json             # DEPENDENCIAS A CONFIGURAR
+     └── tailwind.config.js       # ESTILOS A CONFIGURAR
+ 
+ 
+ Autenticación
+ - Conexión con Metamask 
+ - Persistencia en LocalStorage - mantiene sesion al recargar
+ - Desconexión automática - manejar localStorage al cambiar un usuario o desconectarse
+ - Detección de cambios de cuenta - detectar si se conecto un producer, o un retailer u otro usuario.
+ 
+ Gestión de Usuarios
+ - REgistro por roles
+ - Aprobacion por parte del administrador
+ - Estados: Pending, Aproved, Rejected, Canceled.
+ 
+Sistema de Tokens (Tokenización)
+ 
+ - Creación de tokens que representan productos/materias primas
+ - Metadatos JSON para características del producto
+ - Sistema de parentesco: productos derivan de materias primas
+ - Balance individual por usuario y token
+
+Transferencias Controladas
+
+  - Flujo dirigido: Producer -> Factory -> Retailer -> Consumer
+  - Sistema de aprobacion - el receptor debe aceptar
+  - Validación automatica de permisos por rol, ejemplo: el producer no puede enviar al retailer directamente
+  - Trazabilidad completa de movimientos
+  
+Posibles test para el contrato de foundry
+
+ - Test gestion de usuarios
+ - Test de creacion de tokens
+ - Test de transferencias
+ - Test de validacio y permisos
+ - Test de caso edge
+ - Test de eventos
+ - Test de flujo completo
+
+Posibles errores esperados a validar
+
+ - Metamask no esta instalado
+ - Verificar chainID - Network erronea
+ - Contracto no desplegado
+
+1) Casos de Prueba Recomendados
+    - Registrarse como producer
+    - Crear token materia primas
+    - Transferir a Factory 
+    - Factory crea producto derivado  
+    - Continuar hasta consumers
+ 
+2) Validacion de permisos
+    - Intentar transferir al role incorrecto
+	- Crear tokens sin estar aprobado
+	- Acceder paginas de admin sin permisos
+	
+3) Estados de transferencias
+   - Aceptar transferencia
+   - Rechazar transferencia
+   - Verificar actualización de balances
+   
+   
+Posible Ciclo de vida del token
+
+Actor        Acción sobre el Token                          Estado del Token
+Producer     Mint (Materia Prima)                           Activo (Crudo)
+Factory      Burn (Materia Prima) + Mint (Certificado)      Transformado (Hereda ID)
+Retailer     Transfer (Hacia el consumidor)                 En Circulación
+Consumer     Burn / Redeem (Consumo final)                  Retirado (Fin de vida)
+   
+   
+Estructura de ejemplo del token
+
+// Estructura principal del Token
+struct Token {
+    uint256 id;
+    address creator;
+    string name;
+    uint256 totalSupply;
+    string features; // JSON string con las características
+    uint256 parentId; // Sistema de parentesco
+    uint256 dateCreated;
+    mapping(address => uint256) balance; // Balance individual por usuario
+}
+
+
+1) Vamos a usar Anvil como lo describe el archivo adjunto. 
+2) te pregunto por qué defines un role "NONE"?
+3) Quien creara tokens: Productor y Factory ?
+4) En el ejemplo que me dio el profesor en la estructura del token agregan un string features que es un json utili para agregar caracteristicas
+   del token que sea util mostrar o preservar, no lo vamos a usar en la implementacion que propones?
+   
+   1) Entiendo el uso de NONE pero por qué no llamarlo ADMIN ?
+   2) Mencionas "Factory: transforma materias primas en derivados/certificados (burn del padre + mint del hijo) con transform().", esto 
+      significa que si creara un token derivado o son los certificados nuevos tokens?   
+	  
+	Notas de desrrollo: 
+	
+	Administrador (permiso de gobierno): es quien posee DEFAULT_ADMIN_ROLE de OpenZeppelin para aprobar/rechazar usuarios, pausar, etc.
+    Este no necesita aparecer en la enum de roles operativos (los que circulan tokens). Su autoridad proviene de AccessControl, no de la enum.
+    Rol operativo del “censo” de usuarios: PRODUCER, FACTORY, RETAILER, CONSUMER.
+    Estos sí participan en el flujo de tokenización y transferencias.
+	
+	
+	Notas librerias
+	Se uso: forge install OpenZeppelin/openzeppelin-contracts@v5.0.2
+	
+	Test
+	forge test -vvv --match-path test/UserManagementTest.t.sol
