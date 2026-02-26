@@ -231,11 +231,15 @@ Transaction hash: 0xd3a10481974a52b98a605c055ad6c4e432ce4c445f141da9c497e14a0fad
 
 cuentas Edge explorer: 
 
-Account 4:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 ADMIN
+Account 4: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 ADMIN
 
 Account 2: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 PRODUCER
 
 Account 3: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC Factory
+
+Account 5: 0x90F79bf6EB2c4f870365E785982E1f101E93b906 Retailer
+
+Account 6: 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65 CONSUMER
 
 comprobar estado usuario:
 
@@ -283,7 +287,7 @@ Demo E2E: Producer mint→transfer; Factory accept→transform→transfer; Retai
 Transform lo hace la Factory (no Retailer).
 ______________________________________________
 
-🎯 Objetivo del módulo transversal (mañana): Transferencias con escrow
+🎯 Objetivo del módulo transversal : Transferencias con escrow
 Implementar la UI completa para:
 
 initiateTransfer(to, tokenId, amount) — Emisor (según rol)

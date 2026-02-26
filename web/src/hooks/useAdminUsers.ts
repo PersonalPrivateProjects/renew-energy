@@ -32,7 +32,7 @@ export function useAdminUsers() {
         // Traer todos los logs del contrato
         const logs = await client.getLogs({
           address: CONTRACT_ADDRESS,
-          fromBlock: 0n,
+          fromBlock: BigInt(0),
           toBlock: "latest",
         });
 
@@ -40,7 +40,7 @@ export function useAdminUsers() {
         const decoded = parseEventLogs({
           abi: green1155Abi as any,
           logs,
-        });
+        }) as { eventName: string; args: Record<string, unknown>; blockNumber?: bigint; logIndex?: number }[];
 
         // Reconstruir estado por address
         type Entry = { role: Role; status: UserStatus; lastEvent: string; blockNumber: bigint; logIndex: number };

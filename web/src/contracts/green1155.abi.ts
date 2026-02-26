@@ -98,6 +98,74 @@ export const green1155Abi = [
     outputs: [{ name: "childId", type: "uint256" }]
   },
 
+  // --- Transfers (escrow) ---
+  {
+    type: "function",
+    name: "transfers",
+    stateMutability: "view",
+    inputs: [{ name: "transferId", type: "uint256" }],
+    outputs: [
+      { name: "id", type: "uint256" },
+      { name: "from", type: "address" },
+      { name: "to", type: "address" },
+      { name: "tokenId", type: "uint256" },
+      { name: "amount", type: "uint256" },
+      { name: "status", type: "uint8" },
+      { name: "createdAt", type: "uint64" }
+    ]
+  },
+  {
+    type: "function",
+    name: "nextTransferId",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }]
+  },
+  {
+    type: "function",
+    name: "initiateTransfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "tokenId", type: "uint256" },
+      { name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "acceptTransfer",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "transferId", type: "uint256" }],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "rejectTransfer",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "transferId", type: "uint256" }],
+    outputs: []
+  },
+  {
+    type: "function",
+    name: "cancelTransfer",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "transferId", type: "uint256" }],
+    outputs: []
+  },
+
+  // --- Redeem (Consumer) ---
+  {
+    type: "function",
+    name: "redeem",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "tokenId", type: "uint256" },
+      { name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  },
+
   // --- User events ---
   {
     type: "event",
@@ -127,6 +195,75 @@ export const green1155Abi = [
     type: "event",
     name: "UserCanceled",
     inputs: [{ name: "user", type: "address", indexed: true }],
+    anonymous: false
+  },
+
+  // --- Token events ---
+  {
+    type: "event",
+    name: "TokenCreated",
+    inputs: [
+      { name: "id", type: "uint256", indexed: true },
+      { name: "creator", type: "address", indexed: false },
+      { name: "role", type: "uint8", indexed: false },
+      { name: "amount", type: "uint256", indexed: false },
+      { name: "parentId", type: "uint256", indexed: false },
+      { name: "uri", type: "string", indexed: false },
+      { name: "featuresJson", type: "string", indexed: false }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "TokenTransformed",
+    inputs: [
+      { name: "childId", type: "uint256", indexed: true },
+      { name: "parentId", type: "uint256", indexed: true },
+      { name: "factory", type: "address", indexed: false },
+      { name: "amount", type: "uint256", indexed: false }
+    ],
+    anonymous: false
+  },
+
+  // --- Transfer events ---
+  {
+    type: "event",
+    name: "TransferInitiated",
+    inputs: [
+      { name: "transferId", type: "uint256", indexed: true },
+      { name: "from", type: "address", indexed: true },
+      { name: "to", type: "address", indexed: true },
+      { name: "tokenId", type: "uint256", indexed: false },
+      { name: "amount", type: "uint256", indexed: false }
+    ],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "TransferAccepted",
+    inputs: [{ name: "transferId", type: "uint256", indexed: true }],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "TransferRejected",
+    inputs: [{ name: "transferId", type: "uint256", indexed: true }],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "TransferCanceled",
+    inputs: [{ name: "transferId", type: "uint256", indexed: true }],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "Redeemed",
+    inputs: [
+      { name: "consumer", type: "address", indexed: true },
+      { name: "tokenId", type: "uint256", indexed: true },
+      { name: "amount", type: "uint256", indexed: false }
+    ],
     anonymous: false
   },
 ] as const;

@@ -22,7 +22,7 @@ export default function TokenCard({ id, balance, uri, featuresJson, parentId }: 
 
       <p className="text-sm text-gray-600"><b>URI:</b> {uri || "—"}</p>
       <p className="text-sm text-gray-600">
-        <b>ParentId:</b> {parentId === 0n ? "— (raíz)" : `#${parentId.toString()}`}
+        <b>ParentId:</b> {parentId === BigInt(0) ? "— (raíz)" : `#${parentId.toString()}`}
       </p>
 
       <details className="text-sm">

@@ -99,7 +99,7 @@ export default function TokenList() {
               balance={it.balance}
               uri={m?.uri ?? ""}
               featuresJson={m?.featuresJson ?? ""}
-              parentId={m?.parentId ?? 0n}
+              parentId={m?.parentId ?? BigInt(0)}
             />
           );
         })}
