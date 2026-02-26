@@ -78,30 +78,31 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-        <h2 className="text-xl font-bold mb-4">Iniciar Transferencia</h2>
+    <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl border border-slate-200">
+        <h2 className="text-xl font-bold mb-4 text-slate-800">Iniciar Transferencia</h2>
         
-        <div className="mb-4 p-3 bg-gray-50 rounded text-sm">
-          <div><strong>Token ID:</strong> {tokenId.toString()}</div>
-          <div><strong>Tu balance:</strong> {tokenBalance.toString()}</div>
-          <div><strong>Tu rol:</strong> {roleLabel(role)}</div>
+        <div className="mb-4 p-3 bg-slate-50 rounded-lg text-sm border border-slate-200">
+          <div className="text-slate-600"><span className="font-medium">Token ID:</span> <span className="text-slate-800">{tokenId.toString()}</span></div>
+          <div className="text-slate-600"><span className="font-medium">Tu balance:</span> <span className="text-slate-800">{tokenBalance.toString()}</span></div>
+          <div className="text-slate-600"><span className="font-medium">Tu rol:</span> <span className="text-emerald-600">{roleLabel(role)}</span></div>
         </div>
 
         {validRecipientRoles.length === 0 ? (
-          <div className="text-red-600 mb-4">
+          <div className="text-red-600 mb-4 text-sm">
             Tu rol no puede iniciar transferencias. Solo Producer, Factory y Retailer pueden hacerlo.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Destinatario ( {validRecipientRoles.map(r => roleLabel(r)).join(" o ")} )
               </label>
               <select
                 value={selectedRecipient}
                 onChange={(e) => setSelectedRecipient(e.target.value as `0x${string}`)}
-                className="w-full border rounded px-3 py-2"
+                className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 appearance-none"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
                 required
               >
                 <option value="">Seleccionar...</option>
@@ -112,7 +113,7 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
                 ))}
               </select>
               {approvedAddresses.length === 0 && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-500 mt-2">
                   {role0Users.loading || role1Users.loading 
                     ? "Cargando usuarios..." 
                     : "No hay usuarios aprobados del rol necesario"}
@@ -121,34 +122,34 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Cantidad</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Cantidad</label>
               <input
                 type="number"
                 min="1"
                 max={tokenBalance.toString()}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full border rounded px-3 py-2"
+                className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
                 placeholder={`Max: ${tokenBalance.toString()}`}
                 required
               />
             </div>
 
             {error && (
-              <div className="text-red-600 text-sm">{error}</div>
+              <div className="text-red-600 text-sm p-2 bg-red-50 rounded-lg border border-red-200">{error}</div>
             )}
 
             {isSuccess && (
-              <div className="text-green-600 text-sm">
+              <div className="text-emerald-600 text-sm p-2 bg-emerald-50 rounded-lg border border-emerald-200 font-medium">
                 Transferencia iniciada exitosamente. Hash: {hash?.slice(0, 10)}...
               </div>
             )}
 
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-3 justify-end pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border rounded hover:bg-gray-50"
+                className="px-4 py-2.5 bg-white text-slate-700 font-medium rounded-lg border border-slate-300 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                 disabled={isPending}
               >
                 Cancelar
@@ -156,7 +157,7 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
               <button
                 type="submit"
                 disabled={isPending || approvedAddresses.length === 0}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {isPending ? "Iniciando..." : "Transferir"}
               </button>

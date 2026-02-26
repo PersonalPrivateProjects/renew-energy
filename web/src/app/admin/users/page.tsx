@@ -19,18 +19,18 @@ export default function AdminUsersPage() {
   useEffect(() => { /* noop: el hook vuelve a correr en cada montaje */ }, [refreshFlag]);
 
   if (!isConnected) {
-    return <div className="p-4 border rounded bg-white">Conéctate con MetaMask.</div>;
+    return <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-600">Conéctate con MetaMask.</div>;
   }
 
   if (loadingAdmin) {
-    return <div className="p-4 border rounded bg-white">Verificando permisos de administrador…</div>;
+    return <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-600">Verificando permisos de administrador…</div>;
   }
 
   if (!isAdmin) {
     return (
-      <div className="p-4 border rounded bg-white">
-        <p className="font-semibold">Acceso denegado</p>
-        <p className="text-sm text-gray-600">Tu cuenta ({address}) no tiene permisos de administrador.</p>
+      <div className="p-5 bg-white border border-slate-200 rounded-xl">
+        <p className="font-semibold text-slate-800">Acceso denegado</p>
+        <p className="text-sm text-slate-500 mt-1">Tu cuenta ({address}) no tiene permisos de administrador.</p>
       </div>
     );
   }
@@ -38,23 +38,24 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Administración de Usuarios</h2>
+        <h2 className="text-xl font-semibold text-slate-800">Administración de Usuarios</h2>
 
-        <label className="inline-flex items-center gap-2 text-sm">
+        <label className="inline-flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
           <input
             type="checkbox"
             checked={showPendingOnly}
             onChange={() => setShowPendingOnly((v) => !v)}
+            className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
           />
           Mostrar sólo pendientes
         </label>
       </header>
 
-      {loading && <div className="p-4 border rounded bg-white">Cargando usuarios desde eventos…</div>}
-      {error && <div className="p-4 border rounded bg-white text-red-600">Error: {String(error.message || error)}</div>}
+      {loading && <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-600">Cargando usuarios desde eventos…</div>}
+      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600">Error: {String(error.message || error)}</div>}
 
       {!loading && list.length === 0 && (
-        <div className="p-4 border rounded bg-white">No hay usuarios para mostrar.</div>
+        <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-500">No hay usuarios para mostrar.</div>
       )}
 
       <div className="space-y-3">

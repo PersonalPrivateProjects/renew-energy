@@ -39,7 +39,6 @@ export default function TokenTransformPage() {
       try {
         const { items } = await fetchUserBalancesAll(address as Address);
         if (!mounted) return;
-        // Muestra cualquier token que tenga la Factory (típicamente materias primas recibidas).
         setInventory(items);
 
         const ids = items.map((x) => x.id);
@@ -76,9 +75,9 @@ export default function TokenTransformPage() {
   if (!canTransform) {
     return (
       <div className="space-y-3">
-        <h2 className="text-xl font-semibold">Transformar</h2>
-        <div className="p-4 border rounded bg-white">
-          Solo usuarios <b>Factory</b> aprobados pueden transformar tokens.
+        <h2 className="text-xl font-semibold text-slate-800">Transformar</h2>
+        <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-600">
+          Solo usuarios <b className="text-emerald-600">Factory</b> aprobados pueden transformar tokens.
         </div>
       </div>
     );
@@ -86,18 +85,18 @@ export default function TokenTransformPage() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-xl font-semibold">Transformar</h2>
+      <h2 className="text-xl font-semibold text-slate-800">Transformar</h2>
 
-      <div className="p-4 border rounded bg-white space-y-3">
-        <p className="text-sm text-gray-700">
-          Selecciona un <b>parentId</b> de tu inventario (balance &gt; 0). Normalmente son
+      <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3">
+        <p className="text-sm text-slate-600">
+          Selecciona un <b className="text-slate-800">parentId</b> de tu inventario (balance &gt; 0). Normally son
           materias primas recibidas desde Producer.
         </p>
 
-        {loading && <div>Cargando inventario…</div>}
+        {loading && <div className="text-sm text-slate-500">Cargando inventario…</div>}
 
         {!loading && inventory.length === 0 && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-slate-500">
             No tienes tokens para transformar aún. Cuando implementemos Transfers,
             podrás recibir de Producer y verlos aquí.
           </div>
@@ -105,9 +104,10 @@ export default function TokenTransformPage() {
 
         {!loading && inventory.length > 0 && (
           <div className="space-y-2">
-            <label className="block text-sm font-medium">ParentId</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">ParentId</label>
             <select
-              className="w-full border rounded p-2"
+              className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 appearance-none"
+              style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
               value={parentId ? parentId.toString() : ""}
               onChange={(e) => setParentId(e.target.value ? BigInt(e.target.value) : null)}
             >
@@ -125,22 +125,22 @@ export default function TokenTransformPage() {
         )}
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-4 p-4 border rounded bg-white max-w-xl">
+      <form onSubmit={onSubmit} className="space-y-5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm max-w-xl">
         <div>
-          <label className="block text-sm font-medium">Cantidad a transformar</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Cantidad a transformar</label>
           <input
             type="number"
             min={1}
-            className="mt-1 w-full border rounded p-2"
+            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Child URI (opcional)</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Child URI (opcional)</label>
           <input
-            className="mt-1 w-full border rounded p-2"
+            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
             placeholder="ipfs://... o https://..."
             value={childUri}
             onChange={(e) => setChildUri(e.target.value)}
@@ -148,9 +148,9 @@ export default function TokenTransformPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium">featuresJson (on-chain)</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">featuresJson (on-chain)</label>
           <textarea
-            className="mt-1 w-full border rounded p-2 font-mono text-sm"
+            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm font-mono placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 resize-none"
             rows={6}
             value={features}
             onChange={(e) => setFeatures(e.target.value)}
@@ -159,14 +159,14 @@ export default function TokenTransformPage() {
 
         {error && <p className="text-sm text-red-600">{error.message}</p>}
         {txHash && (
-          <p className="text-sm text-emerald-700">
-            Transacción enviada: <span className="font-mono">{txHash}</span>
+          <p className="text-sm text-emerald-700 font-medium">
+            Transacción enviada: <span className="font-mono text-xs">{txHash}</span>
           </p>
         )}
 
         <button
           type="submit"
-          className="bg-indigo-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          className="px-4 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           disabled={isPending || !parentId}
         >
           {isPending ? "Enviando…" : "Transformar"}

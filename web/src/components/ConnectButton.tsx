@@ -11,12 +11,12 @@ export default function ConnectButton() {
 
   if (isConnected) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600">Conectado</span>
-        <span className="text-xs bg-gray-400 px-2 py-1 rounded">{address}</span>
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-slate-500">Conectado</span>
+        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-mono border border-slate-200">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
         <button
           onClick={() => disconnect()}
-          className="text-sm bg-red-600 text-white px-3 py-1 rounded"
+          className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-colors"
         >
           Desconectar
         </button>
@@ -30,7 +30,7 @@ export default function ConnectButton() {
     <div className="flex items-center gap-2">
       <button
         onClick={() => injected && connect({ connector: injected })}
-        className="text-sm bg-emerald-600 text-white px-3 py-1 rounded disabled:opacity-50"
+        className="text-sm px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         disabled={isConnecting || !injected}
       >
         {isConnecting ? "Conectando…" : "Conectar MetaMask"}

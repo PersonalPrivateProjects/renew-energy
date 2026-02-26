@@ -9,9 +9,9 @@ import UserGate from "../components/UserGate";
 export default function HomePage() {
   return (
     <div className="space-y-6">
-      <section className="bg-white border rounded p-6">
-        <h1 className="text-2xl font-semibold mb-2">Green Supply Chain</h1>
-        <p className="text-gray-600">
+      <section className="card p-6 bg-gradient-to-br from-emerald-50 to-slate-50 border-emerald-200">
+        <h1 className="text-2xl font-bold text-slate-800 mb-2">Green Supply Chain</h1>
+        <p className="text-slate-600">
           Sistema de trazabilidad y tokenización con flujo controlado por roles (Producer → Factory → Retailer → Consumer).
         </p>
       </section>

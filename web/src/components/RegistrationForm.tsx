@@ -59,20 +59,21 @@ export default function RegistrationForm() {
   };
 
   if (!isConnected) {
-    return <div className="p-4 border rounded">Conéctate con MetaMask para registrarte.</div>;
+    return <div className="p-4 border border-slate-200 rounded-xl bg-white text-slate-600">Conéctate con MetaMask para registrarte.</div>;
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 p-4 border rounded bg-white max-w-md">
+    <form onSubmit={onSubmit} className="space-y-5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm max-w-md">
       <div>
-        <label className="block text-sm font-medium">Estado actual</label>
-        <div className="mt-1 text-gray-700">{isLoading ? "Cargando…" : statusLabel(status)}</div>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">Estado actual</label>
+        <div className="text-slate-800 font-medium">{isLoading ? "Cargando…" : statusLabel(status)}</div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium">Rol a solicitar</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">Rol a solicitar</label>
         <select
-          className="mt-1 w-full border rounded p-2"
+          className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 appearance-none"
+          style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
           value={selectedRole}
           onChange={(e) => setSelectedRole(Number(e.target.value) as Role)}
           disabled={!canRegister || isWriting}
@@ -81,17 +82,17 @@ export default function RegistrationForm() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-slate-500 mt-2">
           Flujo: Producer → Factory → Retailer → Consumer (validaciones del contrato).
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium">
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">
           Alias (opcional, solo visible en este navegador)
         </label>
         <input
-          className="mt-1 w-full border rounded p-2"
+          className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
           placeholder="Ej: Planta Solar Los Andes"
           value={alias}
           onChange={(e) => setAlias(e.target.value)}
@@ -102,7 +103,7 @@ export default function RegistrationForm() {
 
       <button
         type="submit"
-        className="bg-emerald-600 text-white px-4 py-2 rounded disabled:opacity-50"
+        className="w-full px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         disabled={!canRegister || isWriting}
       >
         {isWriting ? "Enviando…" : "Solicitar registro"}
