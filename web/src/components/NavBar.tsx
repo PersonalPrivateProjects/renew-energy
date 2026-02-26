@@ -3,10 +3,12 @@
 import Link from "next/link";
 import ConnectButton from "./ConnectButton";
 import { useAccount } from "wagmi";
+import { useIsAdmin } from "../hooks/useIsAdmin";
 
 // Barra superior con navegación simple.
 export default function NavBar() {
   const { isConnected } = useAccount();
+  const { isAdmin } = useIsAdmin();
 
   return (
     <nav className="border-b bg-white">
@@ -17,9 +19,10 @@ export default function NavBar() {
             <>
               <Link href="/dashboard" className="text-sm text-gray-700 hover:text-black">Dashboard</Link>
               <Link href="/profile" className="text-sm text-gray-700 hover:text-black">Profile</Link>
-              {/* Próximos pasos:
               <Link href="/tokens" className="text-sm text-gray-700 hover:text-black">Tokens</Link>
               <Link href="/transfers" className="text-sm text-gray-700 hover:text-black">Transfers</Link>
+               {isAdmin && <Link href="/admin/users">Admin</Link>}
+              {/* Próximos pasos:             
               <Link href="/admin/users" className="text-sm text-gray-700 hover:text-black">Admin</Link>
               */}
             </>

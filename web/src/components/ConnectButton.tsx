@@ -13,7 +13,7 @@ export default function ConnectButton() {
     return (
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-600">Conectado</span>
-        <span className="text-xs bg-gray-200 px-2 py-1 rounded">{address}</span>
+        <span className="text-xs bg-gray-400 px-2 py-1 rounded">{address}</span>
         <button
           onClick={() => disconnect()}
           className="text-sm bg-red-600 text-white px-3 py-1 rounded"

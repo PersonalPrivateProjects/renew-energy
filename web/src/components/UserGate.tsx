@@ -35,7 +35,7 @@ export default function UserGate() {
       <div className="p-4 border rounded bg-white">
         <p className="mb-1">Estado: <b>{statusLabel(status)}</b></p>
         <p className="text-sm text-gray-600 mb-3">Puedes solicitar registro por rol.</p>
-        <Link href="/(auth)/register" className="inline-block bg-emerald-600 text-white px-4 py-2 rounded">
+        <Link href="/auth/register" className="inline-block bg-emerald-600 text-white px-4 py-2 rounded">
           Ir a Registro
         </Link>
       </div>

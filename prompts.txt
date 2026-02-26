@@ -206,3 +206,167 @@ struct Token {
 	
 	Test
 	forge test -vvv --match-path test/UserManagementTest.t.sol
+	
+	
+	DESPLEGAR CONTRACT Anvil
+	
+  forge create \
+  --rpc-url http://127.0.0.1:8545 \
+  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+  src/GreenSupplyChain1155.sol:GreenSupplyChain1155 \
+  --constructor-args "https://example.com/{id}.json"
+ 
+
+forge create \
+  --rpc-url http://127.0.0.1:8545 \
+  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+  src/GreenSupplyChain1155.sol:GreenSupplyChain1155 \
+  --constructor-args "https://example.com/\{id\}.json"
+  
+  
+  Deployer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+Transaction hash: 0xd3a10481974a52b98a605c055ad6c4e432ce4c445f141da9c497e14a0fad696d
+
+
+cuentas Edge explorer: 
+
+Account 4:  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 ADMIN
+
+Account 2: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 PRODUCER
+
+Account 3: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC Factory
+
+comprobar estado usuario:
+
+cast call 0x5FbDB2315678afecb367f032d93F642f64180aa3 \
+  "users(address)(uint8,uint8)" \
+  0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  
+  resultado: role = 1   // Role.PRODUCER
+status = 1 // UserStatus.Pending
+  
+  
+  
+  Transferencias (escrow):
+
+Producer → initiateTransfer(to, tokenId, amount)
+Receptor → acceptTransfer(transferId) / rejectTransfer(transferId)
+Emisor → cancelTransfer(transferId)
+Páginas:
+
+/transfers
+Pendientes (para quien recibe)
+Historial (para ambos)
+
+
+UI integrada por rol
+
+¿Avanzamos con Transfers? Te lo entrego con:
+✔ Hooks (useTransfers, usePendingTransfers, useMyTransfers)
+✔ Componentes (TransferRow, TransferList)
+✔ Páginas (/transfers, /transfers/pending, /transfers/history)
+✔ Botones con validación según rol
+✔ Tipos bien definidos
+✔ Integración con wagmi v3 y tus configs actuales
+
+
+Texto para pegarme mañana
+
+Continuemos con Transferencias (escrow):
+
+Rutas: /transfers (Pendientes / Enviadas / Historial)
+Hooks: inbox/outbox/history + acciones (initiate/accept/reject/cancel)
+Botón Transferir desde /tokens/detail?id=<id>
+Validaciones por rol (Producer→Factory, Factory→Retailer, Retailer→Consumer)
+Demo E2E: Producer mint→transfer; Factory accept→transform→transfer; Retailer accept→transfer; Consumer accept→redeem.
+Transform lo hace la Factory (no Retailer).
+______________________________________________
+
+🎯 Objetivo del módulo transversal (mañana): Transferencias con escrow
+Implementar la UI completa para:
+
+initiateTransfer(to, tokenId, amount) — Emisor (según rol)
+acceptTransfer(transferId) — Receptor
+rejectTransfer(transferId) — Receptor
+cancelTransfer(transferId) — Emisor (si sigue Pending)
+
+Matriz de flujo (válida y ya exigida por el contrato):
+
+Producer ⟶ Factory
+Factory ⟶ Retailer
+Retailer ⟶ Consumer
+
+
+📦 Entregables previstos
+1) Páginas
+
+/transfers (landing con tabs):
+
+Pendientes (soy receptor → Aceptar / Rechazar)
+Enviadas (soy emisor → Cancelar si Pending)
+Historial (todos mis movimientos)
+
+
+Acceso rápido a iniciar transferencia desde:
+
+Detalle del token (/tokens/detail?id=<id>) → botón Transferir
+(Opcional) desde la lista de tokens
+
+
+
+2) Hooks (wagmi + viem)
+
+useTransfersInbox() → pendientes donde to == myAddress y status == Pending
+useTransfersOutbox() → pendientes donde from == myAddress y status == Pending
+useTransfersHistory() → por eventos + mapping transfers[id]
+useInitiateTransfer(), useAcceptTransfer(), useRejectTransfer(), useCancelTransfer()
+
+3) Componentes
+
+TransferRow (muestra from/to, tokenId, amount, status, acciones)
+TransferList (paginación simple / orden por fecha)
+StartTransferDialog (selector de destinatario válido por rol + amount)
+
+4) Validaciones UX
+
+Deshabilitar “Transferir” si:
+
+no tienes balance
+el destinatario no está Approved
+el flujo es inválido (Producer→Retailer, etc.)
+
+
+Mensajes claros ante revert de contrato (e.g. InvalidFlow, NotApprovedUser, ZeroAmount)
+
+
+
+
+_____________________________________
+
+Demo end‑to‑end que cerraremos
+
+Admin aprueba Producer, Factory, Retailer, Consumer.
+Producer:
+
+mintRaw(100) → Token #1
+initiateTransfer(Factory, #1, 60)
+
+
+Factory (receptor):
+
+acceptTransfer (#tid) → recibe 60 del #1
+transform(#1, 50, childUri, featuresJson) → quema 50 del #1 y acuña 50 del #2
+initiateTransfer(Retailer, #2, 50)
+
+
+Retailer:
+
+acceptTransfer (recibe #2)
+initiateTransfer(Consumer, #2, 30)
+
+
+Consumer:
+
+acceptTransfer (recibe 30)
+redeem(#2, 30)
