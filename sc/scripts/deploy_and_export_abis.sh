@@ -4,10 +4,12 @@ set -euo pipefail
 # ──────────────────────────────────────────────────────────────────────────────
 # Paths (corre este script desde la raíz del repo): Debes esta en la carpeta sc
 # ──────────────────────────────────────────────────────────────────────────────
-PROJECT_ROOT="$(pwd)"
-SC_DIR="${PROJECT_ROOT}"
+
+SC_DIR="$(pwd)"                        # /.../mi-repo/sc
+PROJECT_ROOT="$(dirname "$SC_DIR")"    # /.../mi-repo   ← un nivel arriba
 WEB_CONTRACT_DIR="${PROJECT_ROOT}/web/src/contracts"
 ENV_FILE="${SC_DIR}/.env"
+
 
 echo "📁 PROJECT_ROOT      = ${PROJECT_ROOT}"
 echo "📁 SC_DIR            = ${SC_DIR}"
