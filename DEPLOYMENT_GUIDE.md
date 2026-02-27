@@ -21,10 +21,10 @@ Nota: En la carpeta `sc` verifica que tengas instalado OpenZeppelin si no puede 
  
 ## ✅ 2) Iniciar la red local
 
-En una terminal, entra a la carpeta de contratos `sc/src` y levanta **Anvil**:
+En una terminal, entra a la carpeta de contratos `sc/` y levanta **Anvil**:
 
 ```bash
-cd sc/src
+cd sc/
 anvil
 ```
 
@@ -61,14 +61,12 @@ En la carpeta `sc`:
 cp .env.example .env
 ```
 
-
 Edita `.env` para que quede así:
-
 ```env
-RPC_URL=http://localhost:8545
-MNEMONIC="test test test test test test test test test test test junk"
+RPC_URL=http://127.0.0.1:8545
+ANVIL_FIRST_ACCOUNT=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 CHAIN_ID=31337
-
+BASE_URI=https://example.json
 ```
 
 ## ✅ 4) Compilar, testear y desplegar contratos
@@ -86,7 +84,7 @@ forge test
 ```
 
 ### 🚀 Deploy
-Ejecuta el script de despliegue (y exportación de ABIs):
+Ejecuta el script de despliegue desde dentro de la carpeta /sc (y exportación de ABIs):
 
 ```bash
 ./scripts/deploy_and_export_abis.sh
@@ -94,9 +92,28 @@ Ejecuta el script de despliegue (y exportación de ABIs):
 
 > 📦 **ABIs**: El script exporta los ABIs para el front (ruta definida en el propio script).
 
+Al finalizar deber ver esta salida: 
+
+```
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /mnt/c/Users/carlo/Documents/foundry_practices/ProyectosObligatoriosEthereum/renew-energy/sc/broadcast/Deploy.s.sol/31337/run-latest.json
+
+Sensitive values saved to: /mnt/c/Users/carlo/Documents/foundry_practices/ProyectosObligatoriosEthereum/renew-energy/sc/cache/Deploy.s.sol/31337/run-latest.json
+
+[3/4] Exportando ABI a web/src/contracts…
+[4/4] Extrayendo address del deployment…
+✅ Deployed at 0x5fbdb2315678afecb367f032d93f642f64180aa3 (chainId=31337)
+✅ Listo.
+
+```
+> 🏆 **Importante**: Copia la direccion de despliegue "Deployed at" en este caso 0x5fbdb2315678afecb367f032d93f642f64180aa3 (puede cambiar)
 ---
 
-## ✅ 4) Configurar la DApp web
+## ✅ 5) Configurar la DApp web
 
 Abre una otra terminal y muevete a al folder del proyecto de next.js "/web"
 
@@ -106,6 +123,9 @@ En la carpeta del front (por ejemplo `webapp`):
 ```bash
 cp .env.example .env.local
 ```
+
+> 🏆 **Importante**: En .env.local verifica que la variable NEXT_PUBLIC_CONTRACT_ADDRESS tenga el mismo valor de "Deployed at" copaido del script sino sustituyelo
+
 
 ### 4.2) Iniciar la aplicación
 
