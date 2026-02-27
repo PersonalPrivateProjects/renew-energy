@@ -1,6 +1,6 @@
 "use client";
 
-import { useWriteContract } from "wagmi";
+import { useWriteContract, usePublicClient } from "wagmi"; // 👈 añade usePublicClient
 import { CONTRACT_ADDRESS, green1155Abi } from "../contracts";
 import { AdminUser } from "../hooks/useAdminUsers";
 import { Role, UserStatus, statusLabel } from "../lib/enums";
@@ -12,6 +12,7 @@ type Props = {
 
 export default function AdminUserRow({ user, onChanged }: Props) {
   const { writeContractAsync, isPending, error } = useWriteContract();
+  const publicClient = usePublicClient(); // 👈 nuevo
 
   // Solo permitir acciones cuando el estado sea Pending
   const isFinal =
@@ -22,22 +23,26 @@ export default function AdminUserRow({ user, onChanged }: Props) {
   const canAct = !isPending && !isFinal;
 
   const approve = async () => {
-    await writeContractAsync({
+    const hash = await writeContractAsync({
       abi: green1155Abi,
       address: CONTRACT_ADDRESS,
       functionName: "approveUser",
-      args: [user.address, user.role],   // ✔ mismo rol solicitado
+      args: [user.address, user.role],
     });
+    // ✅ esperar confirmación en cadena
+    await publicClient!.waitForTransactionReceipt({ hash });
     onChanged?.();
   };
 
   const reject = async () => {
-    await writeContractAsync({
+    const hash = await writeContractAsync({
       abi: green1155Abi,
       address: CONTRACT_ADDRESS,
       functionName: "rejectUser",
       args: [user.address],
     });
+    // ✅ esperar confirmación
+    await publicClient!.waitForTransactionReceipt({ hash });
     onChanged?.();
   };
 

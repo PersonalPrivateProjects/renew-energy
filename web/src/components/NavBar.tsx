@@ -11,20 +11,21 @@ export default function NavBar() {
   const { isAdmin } = useIsAdmin();
 
   return (
-    <nav className="border-b bg-white">
+    <nav className="border-b border-slate-200 bg-white shadow-sm">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/" className="font-semibold">Green Supply Chain</Link>
+          <Link href="/" className="font-bold text-emerald-600 hover:text-emerald-700">Green Supply Chain</Link>
           {isConnected && (
             <>
-              <Link href="/dashboard" className="text-sm text-gray-700 hover:text-black">Dashboard</Link>
-              <Link href="/profile" className="text-sm text-gray-700 hover:text-black">Profile</Link>
-              <Link href="/tokens" className="text-sm text-gray-700 hover:text-black">Tokens</Link>
-              <Link href="/transfers" className="text-sm text-gray-700 hover:text-black">Transfers</Link>
-               {isAdmin && <Link href="/admin/users">Admin</Link>}
-              {/* Próximos pasos:             
-              <Link href="/admin/users" className="text-sm text-gray-700 hover:text-black">Admin</Link>
-              */}
+              <Link href="/dashboard" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Dashboard</Link>
+              <Link href="/profile" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Profile</Link>
+              {!isAdmin && (
+                <>
+                  <Link href="/tokens" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Tokens</Link>
+                  <Link href="/transfers" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Transfers</Link>
+                </>
+              )}
+               {isAdmin && <Link href="/admin/users" className="text-sm font-medium text-emerald-600 hover:text-emerald-700">Admin</Link>}
             </>
           )}
         </div>

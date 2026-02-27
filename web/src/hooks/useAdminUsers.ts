@@ -10,12 +10,12 @@ export type AdminUser = {
   address: `0x${string}`;
   role: Role;
   status: UserStatus;
-  lastEvent: string;       // UserRegistered | UserApproved | ...
-  blockNumber: bigint;     // para ordenar cronológicamente
+  lastEvent: string;
+  blockNumber: bigint;
   logIndex: number;
 };
 
-export function useAdminUsers() {
+export function useAdminUsers(refreshKey?: number) { // 👈 acepta refreshKey
   const client = usePublicClient();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -29,25 +29,21 @@ export function useAdminUsers() {
       setLoading(true);
       setError(null);
       try {
-        // Traer todos los logs del contrato
         const logs = await client.getLogs({
           address: CONTRACT_ADDRESS,
           fromBlock: 0n,
           toBlock: "latest",
         });
 
-        // Decodificar vía viem usando el ABI
         const decoded = parseEventLogs({
           abi: green1155Abi as any,
           logs,
-        });
+        }) as { eventName: string; args: Record<string, unknown>; blockNumber?: bigint; logIndex?: number }[];
 
-        // Reconstruir estado por address
         type Entry = { role: Role; status: UserStatus; lastEvent: string; blockNumber: bigint; logIndex: number };
         const byAddr = new Map<string, Entry>();
 
         for (const ev of decoded) {
-          // Sólo eventos de usuario
           if (
             ev.eventName !== "UserRegistered" &&
             ev.eventName !== "UserApproved" &&
@@ -60,7 +56,6 @@ export function useAdminUsers() {
           const logIndex = Number(ev.logIndex ?? 0);
 
           const prev = byAddr.get(addr.toLowerCase());
-          // Para mantener orden consistente, comparamos (blockNumber, logIndex)
           const shouldApply =
             !prev ||
             blockNumber > prev.blockNumber ||
@@ -116,8 +111,11 @@ export function useAdminUsers() {
           logIndex: v.logIndex,
         }));
 
-        // Ordenar por blockNumber/logIndex descendente (recientes primero)
-        items.sort((a, b) => (a.blockNumber === b.blockNumber ? b.logIndex - a.logIndex : Number(b.blockNumber - a.blockNumber)));
+        items.sort((a, b) =>
+          a.blockNumber === b.blockNumber
+            ? b.logIndex - a.logIndex
+            : Number(b.blockNumber - a.blockNumber)
+        );
 
         if (!cancelled) setUsers(items);
       } catch (e: any) {
@@ -129,7 +127,7 @@ export function useAdminUsers() {
 
     run();
     return () => { cancelled = true; };
-  }, [client]);
+  }, [client, refreshKey]); // 👈 depende de refreshKey
 
   const pending = useMemo(() => users.filter(u => u.status === UserStatus.Pending), [users]);
 
