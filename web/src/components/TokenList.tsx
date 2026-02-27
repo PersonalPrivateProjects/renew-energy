@@ -20,6 +20,7 @@ export default function TokenList() {
 
   const canMint = useMemo(() => role === Role.PRODUCER, [role]);
   const canTransform = useMemo(() => role === Role.FACTORY, [role]);
+  const canRedeem = useMemo(() => role === Role.CONSUMER, [role]);
 
   useEffect(() => {
     let mounted = true;
@@ -72,6 +73,14 @@ export default function TokenList() {
             ⇄ Transformar
           </Link>
         )}
+        {canRedeem && (
+          <Link
+            href="/tokens/redeem"
+            className="bg-orange-600 text-white px-3 py-2 rounded text-sm"
+          >
+            🔥 Redimir
+          </Link>
+        )}
       </div>
 
       {loading && <div className="p-4 border rounded bg-white">Cargando tus tokens…</div>}
@@ -81,9 +90,11 @@ export default function TokenList() {
           <p>No tienes tokens aún.</p>
           <p className="text-sm text-gray-600">
             {canMint
-              ? "Crea un token de materia prima desde “+ Crear materia prima”."
+              ? "Crea un token de materia prima desde '+ Crear materia prima'."
               : canTransform
               ? "Recibe materias primas (desde Producer) para poder transformarlas."
+              : canRedeem
+              ? "Recibe tokens certificados (desde Retailer) para poder redimirlos."
               : "Recibe tokens desde el rol anterior en el flujo para verlos aquí."}
           </p>
         </div>

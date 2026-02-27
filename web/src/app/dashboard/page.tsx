@@ -149,6 +149,7 @@ export default function DashboardPage() {
 
   const consumerActions: QuickAction[] = [
     { title: "Mis Tokens", description: "Ver todos tus tokens", href: "/tokens", icon: "🪙", color: "bg-white border-slate-200 hover:border-orange-300" },
+    { title: "Redimir", description: "Quemar tokens (consumo final)", href: "/tokens/redeem", icon: "🔥", color: "bg-white border-slate-200 hover:border-orange-300" },
     { title: "Recibir Transferencias", description: "Ver transferencias pendientes", href: "/transfers", icon: "📥", color: "bg-white border-slate-200 hover:border-orange-300" },
     { title: "Mi Perfil", description: "Ver y editar perfil", href: "/profile", icon: "👤", color: "bg-white border-slate-200 hover:border-orange-300" },
   ];

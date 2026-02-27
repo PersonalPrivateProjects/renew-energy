@@ -19,8 +19,12 @@ export default function NavBar() {
             <>
               <Link href="/dashboard" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Dashboard</Link>
               <Link href="/profile" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Profile</Link>
-              <Link href="/tokens" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Tokens</Link>
-              <Link href="/transfers" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Transfers</Link>
+              {!isAdmin && (
+                <>
+                  <Link href="/tokens" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Tokens</Link>
+                  <Link href="/transfers" className="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Transfers</Link>
+                </>
+              )}
                {isAdmin && <Link href="/admin/users" className="text-sm font-medium text-emerald-600 hover:text-emerald-700">Admin</Link>}
             </>
           )}
