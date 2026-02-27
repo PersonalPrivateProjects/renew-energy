@@ -1,15 +1,39 @@
+"use client";
+
+import { useEffect } from "react";
+import { useAccount } from "wagmi";
+import { useRouter } from "next/navigation";
 import UserGate from "../components/UserGate";
 
-// Página principal que cumple con:
-// - No conectado: invitar a conectar
-// - Conectado/no registrado: formulario (link a /register)
-// - Conectado/pendiente/aprobado: mensajes y accesos
-// Esto mapea con el apartado "Paginas principales" de tu documento. [1](https://idata2-my.sharepoint.com/personal/carlos_abreu_idata_global/Documents/Microsoft%20Copilot%20Chat%20Files/prompts.txt)
-
 export default function HomePage() {
+  const { address, isConnected } = useAccount();
+  const router = useRouter();
+
+  
+ 
+
+  useEffect(() => {
+     console.log("Usuario conectado before:", address);
+    if (address) {
+      console.log("Usuario conectado after:", address);
+      
+      const t = setTimeout(() => router.replace("/dashboard"), 0);
+      return () => clearTimeout(t);
+    }
+
+  }, [address, router]);
+
+  if (address) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-slate-500">Redirigiendo al dashboard...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <section className="card p-6 bg-gradient-to-br from-emerald-50 to-slate-50 border-emerald-200">
+      <section className="bg-white border border-slate-200 rounded-xl p-6 bg-gradient-to-br from-emerald-50 to-slate-50">
         <h1 className="text-2xl font-bold text-slate-800 mb-2">Green Supply Chain</h1>
         <p className="text-slate-600">
           Sistema de trazabilidad y tokenización con flujo controlado por roles (Producer → Factory → Retailer → Consumer).
