@@ -1,7 +1,7 @@
 // src/app/tokens/detail/page.tsx
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { prettifyJson } from "../../../lib/json";
 import { useSearchParams } from "next/navigation";
 import { useAccount, useReadContract } from "wagmi";
@@ -19,6 +19,7 @@ function TokenDetailsContent() {
   const { address } = useAccount();
   const { role, status } = useUserStatus();
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { data: uri } = useReadContract({
     abi: green1155Abi,
@@ -44,15 +45,26 @@ function TokenDetailsContent() {
     query: { enabled: Boolean(id) },
   });
 
-  const { data: balance } = useReadContract({
+  const { data: balance, refetch } = useReadContract({
     abi: green1155Abi,
     address: CONTRACT_ADDRESS,
     functionName: "balanceOf",
     args: id && address ? [address, id] : undefined,
-    query: { enabled: Boolean(id && address) },
+    query: { enabled: Boolean(id && address), refetchInterval: refreshKey > 0 ? 1000 : false },
   });
 
   const canTransfer = status === 2 && getValidRecipients(role).length > 0 && (balance ?? BigInt(0)) > BigInt(0);
+
+  useEffect(() => {
+    if (showTransferDialog === false && refreshKey > 0) {
+      refetch();
+    }
+  }, [showTransferDialog, refreshKey, refetch]);
+
+  const handleTransferSuccess = () => {
+    setRefreshKey(k => k + 1);
+    setTimeout(() => refetch(), 1500);
+  };
 
   if (!id) {
     return (
@@ -120,7 +132,7 @@ function TokenDetailsContent() {
         onClose={() => setShowTransferDialog(false)}
         tokenId={id}
         tokenBalance={balance ?? BigInt(0)}
-        onSuccess={() => {}}
+        onSuccess={handleTransferSuccess}
       />
     </div>
   );

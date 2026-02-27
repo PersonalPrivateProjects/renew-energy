@@ -5,7 +5,7 @@ import { TransferEvent } from "../hooks/useTransfers";
 import { transferStatusLabel, roleLabel } from "../lib/enums";
 import { useAcceptTransfer, useRejectTransfer, useCancelTransfer } from "../hooks/useTransfers";
 import { useUserStatus } from "../hooks/useUserStatus";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface TransferRowProps {
   transfer: TransferEvent;
@@ -15,31 +15,34 @@ interface TransferRowProps {
 export function TransferRow({ transfer, onRefresh }: TransferRowProps) {
   const { address } = useAccount();
   const { role } = useUserStatus(transfer.from);
-  const { accept, isPending: isAccepting } = useAcceptTransfer();
-  const { reject, isPending: isRejecting } = useRejectTransfer();
-  const { cancel, isPending: isCanceling } = useCancelTransfer();
+  const { accept, isPending: isAccepting, isSuccess: isAcceptSuccess } = useAcceptTransfer();
+  const { reject, isPending: isRejecting, isSuccess: isRejectSuccess } = useRejectTransfer();
+  const { cancel, isPending: isCanceling, isSuccess: isCancelSuccess } = useCancelTransfer();
   const [actioned, setActioned] = useState(false);
 
   const isReceiver = address === transfer.to;
   const isSender = address === transfer.from;
   const isPending = transfer.status === 1;
 
+  useEffect(() => {
+    if ((isAcceptSuccess || isRejectSuccess || isCancelSuccess) && onRefresh) {
+      setTimeout(() => onRefresh(), 1500);
+    }
+  }, [isAcceptSuccess, isRejectSuccess, isCancelSuccess, onRefresh]);
+
   const handleAccept = () => {
-    accept(transfer.transferId);
     setActioned(true);
-    setTimeout(() => onRefresh?.(), 2000);
+    accept(transfer.transferId);
   };
 
   const handleReject = () => {
-    reject(transfer.transferId);
     setActioned(true);
-    setTimeout(() => onRefresh?.(), 2000);
+    reject(transfer.transferId);
   };
 
   const handleCancel = () => {
-    cancel(transfer.transferId);
     setActioned(true);
-    setTimeout(() => onRefresh?.(), 2000);
+    cancel(transfer.transferId);
   };
 
   const getStatusColor = (status: number) => {

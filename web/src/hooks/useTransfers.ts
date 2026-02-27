@@ -24,6 +24,9 @@ export function useTransfersEvents() {
   const [loading, setLoading] = useState(false);
   const [transfers, setTransfers] = useState<TransferEvent[]>([]);
   const [error, setError] = useState<Error | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refetch = () => setRefreshKey(k => k + 1);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,45 +105,45 @@ export function useTransfersEvents() {
 
     run();
     return () => { cancelled = true; };
-  }, [client]);
+  }, [client, refreshKey]);
 
-  return { transfers, loading, error };
+  return { transfers, loading, error, refetch };
 }
 
 export function useTransfersInbox() {
   const { address } = useAccount();
-  const { transfers, loading, error } = useTransfersEvents();
+  const { transfers, loading, error, refetch } = useTransfersEvents();
   
   const inbox = useMemo(() => 
     transfers.filter(t => t.to === address && t.status === TransferStatus.Pending),
     [transfers, address]
   );
   
-  return { transfers: inbox, loading, error };
+  return { transfers: inbox, loading, error, refetch };
 }
 
 export function useTransfersOutbox() {
   const { address } = useAccount();
-  const { transfers, loading, error } = useTransfersEvents();
+  const { transfers, loading, error, refetch } = useTransfersEvents();
   
   const outbox = useMemo(() => 
     transfers.filter(t => t.from === address && t.status === TransferStatus.Pending),
     [transfers, address]
   );
   
-  return { transfers: outbox, loading, error };
+  return { transfers: outbox, loading, error, refetch };
 }
 
 export function useTransfersHistory() {
   const { address } = useAccount();
-  const { transfers, loading, error } = useTransfersEvents();
+  const { transfers, loading, error, refetch } = useTransfersEvents();
   
   const history = useMemo(() => 
     transfers.filter(t => t.from === address || t.to === address),
     [transfers, address]
   );
   
-  return { transfers: history, loading, error };
+  return { transfers: history, loading, error, refetch };
 }
 
 export function useInitiateTransfer() {

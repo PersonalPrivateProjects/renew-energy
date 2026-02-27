@@ -9,14 +9,15 @@ import AdminUserRow from "../../../components/AdminUserRow";
 export default function AdminUsersPage() {
   const { address, isConnected } = useAccount();
   const { isAdmin, isLoading: loadingAdmin } = useIsAdmin();
-  const { users, pending, loading, error } = useAdminUsers();
+
+  // pequeño refresco tras acciones: volver a ejecutar el hook
+  const [refreshFlag, setRefreshFlag] = useState(0);
+  const { users, pending, loading, error } = useAdminUsers(refreshFlag); // 👈 ahora el hook depende de refreshFlag
 
   const [showPendingOnly, setShowPendingOnly] = useState(true);
   const list = showPendingOnly ? pending : users;
 
-  // pequeño refresco tras acciones: volver a ejecutar el hook
-  const [refreshFlag, setRefreshFlag] = useState(0);
-  useEffect(() => { /* noop: el hook vuelve a correr en cada montaje */ }, [refreshFlag]);
+  useEffect(() => { /* opcional: puedes eliminar este efecto */ }, [refreshFlag]);
 
   if (!isConnected) {
     return <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-600">Conéctate con MetaMask.</div>;
@@ -52,7 +53,7 @@ export default function AdminUsersPage() {
       </header>
 
       {loading && <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-600">Cargando usuarios desde eventos…</div>}
-      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600">Error: {String(error.message || error)}</div>}
+      {error && <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600">Error: {String((error as any).message || error)}</div>}
 
       {!loading && list.length === 0 && (
         <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-500">No hay usuarios para mostrar.</div>
@@ -63,7 +64,7 @@ export default function AdminUsersPage() {
           <AdminUserRow
             key={u.address}
             user={u}
-            onChanged={() => setRefreshFlag((n) => n + 1)}
+            onChanged={() => setRefreshFlag((n) => n + 1)} // ✅ fuerza refetch del hook
           />
         ))}
       </div>

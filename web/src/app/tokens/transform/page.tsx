@@ -1,7 +1,7 @@
 // src/app/tokens/transform/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Address } from "viem";
 import { useAccount, useWriteContract } from "wagmi";
 import { green1155Abi } from "../../../contracts/green1155.abi";
@@ -14,7 +14,7 @@ import { fetchUserBalancesAll, fetchTokenMetadataBatch } from "../../../lib/toke
 export default function TokenTransformPage() {
   const { address, isConnected } = useAccount();
   const { role, status } = useUserStatus();
-  const { writeContractAsync, isPending, error } = useWriteContract();
+  const { writeContractAsync, isPending, isSuccess, error } = useWriteContract();
 
   const [loading, setLoading] = useState(false);
   const [inventory, setInventory] = useState<{ id: bigint; balance: bigint }[]>([]);
@@ -27,33 +27,40 @@ export default function TokenTransformPage() {
 
   const canTransform = isConnected && status === UserStatus.Approved && role === Role.FACTORY;
 
-  useEffect(() => {
-    let mounted = true;
-    const run = async () => {
-      if (!canTransform || !address) {
-        setInventory([]);
-        setMeta({});
-        return;
-      }
-      setLoading(true);
-      try {
-        const { items } = await fetchUserBalancesAll(address as Address);
-        if (!mounted) return;
-        setInventory(items);
+  const loadInventory = useCallback(async () => {
+    if (!canTransform || !address) {
+      setInventory([]);
+      setMeta({});
+      return;
+    }
+    setLoading(true);
+    try {
+      const { items } = await fetchUserBalancesAll(address as Address);
+      setInventory(items);
 
-        const ids = items.map((x) => x.id);
-        const metas = await fetchTokenMetadataBatch(ids);
-        if (!mounted) return;
-        const dict: Record<string, any> = {};
-        for (const m of metas) dict[m.id.toString()] = m;
-        setMeta(dict);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    run();
-    return () => { mounted = false; };
+      const ids = items.map((x) => x.id);
+      const metas = await fetchTokenMetadataBatch(ids);
+      const dict: Record<string, any> = {};
+      for (const m of metas) dict[m.id.toString()] = m;
+      setMeta(dict);
+    } finally {
+      setLoading(false);
+    }
   }, [canTransform, address]);
+
+  useEffect(() => {
+    loadInventory();
+  }, [loadInventory]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      setParentId(null);
+      setAmount(0);
+      setChildUri("");
+      setFeatures('{"certificado":true,"kWh":100}');
+      setTimeout(() => loadInventory(), 2500);
+    }
+  }, [isSuccess, loadInventory]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

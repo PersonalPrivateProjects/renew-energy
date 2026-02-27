@@ -1,7 +1,7 @@
 // src/app/tokens/create/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { green1155Abi } from "../../../contracts/green1155.abi";
 import { CONTRACT_ADDRESS } from "../../../contracts";
@@ -12,12 +12,20 @@ import { useUserStatus } from "../../../hooks/useUserStatus";
 export default function TokenCreatePage() {
   const { isConnected } = useAccount();
   const { role, status } = useUserStatus();
-  const { writeContractAsync, isPending, error } = useWriteContract();
+  const { writeContractAsync, isPending, isSuccess, error } = useWriteContract();
 
   const [amount, setAmount] = useState<number>(0);
   const [tokenUri, setTokenUri] = useState<string>("");
   const [features, setFeatures] = useState<string>('{"kWh":100,"fuente":"solar"}');
   const [txHash, setTxHash] = useState<string>("");
+
+  useEffect(() => {
+    if (isSuccess) {
+      setAmount(0);
+      setTokenUri("");
+      setFeatures('{"kWh":100,"fuente":"solar"}');
+    }
+  }, [isSuccess]);
 
   const canCreate =
     isConnected && status === UserStatus.Approved && role === Role.PRODUCER;
@@ -27,7 +35,6 @@ export default function TokenCreatePage() {
     if (!canCreate) return;
     if (!amount || amount <= 0) return alert("Amount debe ser > 0");
 
-    // Validar JSON (opcional, mejora de UX)
     const chk = tryParseJson(features);
     if (!chk.ok) return alert("featuresJson inválido: " + chk.error);
 

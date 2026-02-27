@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useTransfersInbox, useTransfersOutbox, useTransfersHistory } from "../../hooks/useTransfers";
 import { TransferList } from "../../components/TransferList";
@@ -13,20 +13,25 @@ type Tab = "inbox" | "outbox" | "history";
 export default function TransfersPage() {
   const { isConnected } = useAccount();
   const { status } = useUserStatus();
+
   const [activeTab, setActiveTab] = useState<Tab>("inbox");
 
-  const { transfers: inbox, loading: loadingInbox } = useTransfersInbox();
-  const { transfers: outbox, loading: loadingOutbox } = useTransfersOutbox();
-  const { transfers: history, loading: loadingHistory } = useTransfersHistory();
+  const inboxQ = useTransfersInbox();
+  const outboxQ = useTransfersOutbox();
+  const historyQ = useTransfersHistory();
 
-  const tabs: { id: Tab; label: string; count: number; loading: boolean }[] = [
-    { id: "inbox", label: "Pendientes (Recibir)", count: inbox.length, loading: loadingInbox },
-    { id: "outbox", label: "Enviadas", count: outbox.length, loading: loadingOutbox },
-    { id: "history", label: "Historial", count: history.length, loading: loadingHistory },
+  const handleRefresh = async () => {
+    // ✅ Refresca todas las bandejas (o al menos la activa + la contraria)
+    await Promise.all([inboxQ.refetch(), outboxQ.refetch(), historyQ.refetch()]);
+  };
+
+  const tabs = [
+    { id: "inbox" as const, label: "Pendientes (Recibir)", count: inboxQ.transfers.length, loading: inboxQ.loading },
+    { id: "outbox" as const, label: "Enviadas", count: outboxQ.transfers.length, loading: outboxQ.loading },
+    { id: "history" as const, label: "Historial", count: historyQ.transfers.length, loading: historyQ.loading },
   ];
 
-  const currentTransfers = activeTab === "inbox" ? inbox : activeTab === "outbox" ? outbox : history;
-  const currentLoading = activeTab === "inbox" ? loadingInbox : activeTab === "outbox" ? loadingOutbox : loadingHistory;
+  const currentQ = activeTab === "inbox" ? inboxQ : activeTab === "outbox" ? outboxQ : historyQ;
 
   if (!isConnected) {
     return (
@@ -55,10 +60,7 @@ export default function TransfersPage() {
       <div className="max-w-4xl mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Transferencias</h1>
-          <Link
-            href="/tokens"
-            className="text-blue-600 hover:underline text-sm"
-          >
+          <Link href="/tokens" className="text-blue-600 hover:underline text-sm">
             Ir a Mis Tokens
           </Link>
         </div>
@@ -89,8 +91,10 @@ export default function TransfersPage() {
 
           <div className="p-4">
             <TransferList
-              transfers={currentTransfers}
-              loading={currentLoading}
+              key={activeTab}
+              transfers={currentQ.transfers}
+              loading={currentQ.loading}
+              onRefresh={handleRefresh} // ✅ refresca tras acciones
               emptyMessage={
                 activeTab === "inbox"
                   ? "No hay transferencias pendientes por recibir"
