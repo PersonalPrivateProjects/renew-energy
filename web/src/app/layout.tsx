@@ -4,17 +4,19 @@ import Web3Provider from "../contexts/Web3Provider";
 import NavBar from "../components/NavBar";
 
 export const metadata: Metadata = {
-  title: "Green Supply Chain",
-  description: "Trazabilidad y tokenización con ERC-1155"
+  title: "GreenChain - Renewable Energy Traceability",
+  description: "Sistema de trazabilidad y tokenización de energía renovable usando ERC-1155"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body suppressHydrationWarning={true} >
+      <body suppressHydrationWarning={true} className="pattern-grid">
         <Web3Provider>
           <NavBar />
-          <main className="container mx-auto px-4 py-6">{children}</main>
+          <main className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
+            {children}
+          </main>
         </Web3Provider>
       </body>
     </html>

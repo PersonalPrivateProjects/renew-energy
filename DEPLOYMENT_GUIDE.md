@@ -120,11 +120,18 @@ Abre una otra terminal y muevete a al folder del proyecto de next.js "/web"
 ### 4.1) Variables de entorno
 En la carpeta del front (por ejemplo `webapp`):
 
-```bash
-cp .env.example .env.local
+copia estas variables en .env.local (crealo sino lo tienes al miso nivel del package.json):
+```
+# Dirección del contrato desplegado (anvil)- Este valor puede variar 
+NEXT_PUBLIC_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
+# ChainId esperada (anvil=31337)
+NEXT_PUBLIC_CHAIN_ID=31337
+# RPC local de anvil
+NEXT_PUBLIC_RPC_HTTP=http://127.0.0.1:8545
+
 ```
 
-> 🏆 **Importante**: En .env.local verifica que la variable NEXT_PUBLIC_CONTRACT_ADDRESS tenga el mismo valor de "Deployed at" copaido del script sino sustituyelo
+> 🏆 **Importante**: En .env.local verifica que la variable NEXT_PUBLIC_CONTRACT_ADDRESS tenga el mismo valor de "Deployed at" copiado del script sino sustituyelo
 
 
 ### 4.2) Iniciar la aplicación

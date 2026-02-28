@@ -20,8 +20,9 @@ export function useUserStatus(addressOverride?: `0x${string}`) {
     }
   });
 
-  const role = (data?.[0] as number | undefined) ?? 0;
-  const status = (data?.[1] as number | undefined) ?? 0;
+  const userData = data as { 0: number; 1: number } | undefined;
+  const role = userData?.[0] ?? 0;
+  const status = userData?.[1] ?? 0;
 
   return { role, status, isLoading, refetch, error };
 }

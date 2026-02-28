@@ -7,10 +7,13 @@ import { CONTRACT_ADDRESS } from "../contracts";
 import { Role, roleOptions, statusLabel, UserStatus } from "../lib/enums";
 import { useUserStatus } from "../hooks/useUserStatus";
 
-// Formulario de registro:
-// - On-chain: solo envía Role → register(Role).
-// - Off-chain: alias opcional (se guarda en localStorage por address).
-// - Tras el registro, se refresca el estado para que el gating muestre "Pending".
+function ClipboardDocumentListIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    </svg>
+  );
+}
 
 export default function RegistrationForm() {
   const { address, isConnected } = useAccount();
@@ -20,7 +23,6 @@ export default function RegistrationForm() {
   const [selectedRole, setSelectedRole] = useState<Role>(Role.PRODUCER);
   const [alias, setAlias] = useState("");
 
-  // Cargar alias guardado localmente por address
   useEffect(() => {
     if (!address) return;
     const key = `alias:${address.toLowerCase()}`;
@@ -43,10 +45,8 @@ export default function RegistrationForm() {
     e.preventDefault();
     if (!canRegister) return;
 
-    // Guarda alias off-chain (no se envía al contrato)
     saveAlias(alias.trim());
 
-    // Llamada on-chain: register(Role)
     await writeContractAsync({
       abi: green1155Abi,
       address: CONTRACT_ADDRESS,
@@ -54,26 +54,43 @@ export default function RegistrationForm() {
       args: [selectedRole]
     });
 
-    // Espera breve y refresca estado (para ver "Pending")
     setTimeout(() => refetch(), 800);
   };
 
   if (!isConnected) {
-    return <div className="p-4 border border-slate-200 rounded-xl bg-white text-slate-600">Conéctate con MetaMask para registrarte.</div>;
+    return (
+      <div className="glass-card rounded-xl p-6 text-gray-600">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+            </svg>
+          </div>
+          <p>Conéctate con MetaMask para registrarte.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm max-w-md">
+    <form onSubmit={onSubmit} className="glass-card rounded-xl p-6 space-y-5">
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Estado actual</label>
-        <div className="text-slate-800 font-medium">{isLoading ? "Cargando…" : statusLabel(status)}</div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Estado actual</label>
+        <div className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium ${
+          isLoading ? 'bg-gray-100 text-gray-600' :
+          status === 2 ? 'bg-emerald-100 text-emerald-700' : 
+          status === 1 ? 'bg-yellow-100 text-yellow-700' : 
+          status === 3 ? 'bg-red-100 text-red-700' :
+          'bg-gray-100 text-gray-600'
+        }`}>
+          {isLoading ? "Cargando…" : statusLabel(status)}
+        </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Rol a solicitar</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Rol a solicitar</label>
         <select
-          className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 appearance-none"
-          style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+          className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
           value={selectedRole}
           onChange={(e) => setSelectedRole(Number(e.target.value) as Role)}
           disabled={!canRegister || isWriting}
@@ -82,31 +99,49 @@ export default function RegistrationForm() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-        <p className="text-xs text-slate-500 mt-2">
-          Flujo: Producer → Factory → Retailer → Consumer (validaciones del contrato).
+        <p className="text-xs text-gray-500 mt-2">
+          Flujo: Producer → Factory → Retailer → Consumer
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">
-          Alias (opcional, solo visible en este navegador)
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          Alias local
+          <span className="ml-1 text-gray-400 font-normal">(solo visible en este navegador)</span>
         </label>
         <input
-          className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
+          className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200"
           placeholder="Ej: Planta Solar Los Andes"
           value={alias}
           onChange={(e) => setAlias(e.target.value)}
         />
       </div>
 
-      {writeError && <p className="text-sm text-red-600">{writeError.message}</p>}
+      {writeError && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+          {writeError.message}
+        </div>
+      )}
 
       <button
         type="submit"
-        className="w-full px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        className="w-full px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-medium rounded-lg hover:from-emerald-700 hover:to-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md flex items-center justify-center gap-2"
         disabled={!canRegister || isWriting}
       >
-        {isWriting ? "Enviando…" : "Solicitar registro"}
+        {isWriting ? (
+          <span className="flex items-center gap-2">
+            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Enviando...
+          </span>
+        ) : (
+          <span className="flex items-center gap-2">
+            <ClipboardDocumentListIcon className="w-4 h-4" />
+            Solicitar registro
+          </span>
+        )}
       </button>
     </form>
   );
