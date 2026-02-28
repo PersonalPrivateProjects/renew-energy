@@ -139,7 +139,7 @@ export function useTransfersHistory() {
   const { transfers, loading, error, refetch } = useTransfersEvents();
   
   const history = useMemo(() => 
-    transfers.filter(t => t.from === address || t.to === address),
+    transfers.filter(t => (t.from === address || t.to === address) && t.status !== TransferStatus.Pending),
     [transfers, address]
   );
   

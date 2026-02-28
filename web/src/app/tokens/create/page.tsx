@@ -29,6 +29,7 @@ export default function TokenCreatePage() {
     unit: "kWh",
     name: "",
     description: "",
+    certification: "",
   });
   const [txHash, setTxHash] = useState<string>("");
 
@@ -62,6 +63,7 @@ export default function TokenCreatePage() {
         unit: "kWh",
         name: "",
         description: "",
+        certification: "",
       });
     }
   }, [isSuccess]);

@@ -37,10 +37,22 @@ export function TransferRow({ transfer, onRefresh }: TransferRowProps) {
   const isPending = transfer.status === 1;
 
   useEffect(() => {
+    if (!isPending && onRefresh) {
+      setActioned(false);
+    }
+  }, [transfer.status, isPending]);
+
+  useEffect(() => {
     if ((isAcceptSuccess || isRejectSuccess || isCancelSuccess) && onRefresh) {
       setTimeout(() => onRefresh(), 1500);
     }
   }, [isAcceptSuccess, isRejectSuccess, isCancelSuccess, onRefresh]);
+
+  useEffect(() => {
+    if (!isPending) {
+      setActioned(false);
+    }
+  }, [transfer.transferId, isPending]);
 
   const handleAccept = () => {
     setActioned(true);

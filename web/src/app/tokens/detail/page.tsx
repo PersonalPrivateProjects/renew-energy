@@ -1,7 +1,7 @@
 // src/app/tokens/detail/page.tsx
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useRef } from "react";
 import { prettifyJson } from "../../../lib/json";
 import { useSearchParams } from "next/navigation";
 import { useAccount, useReadContract } from "wagmi";
@@ -19,7 +19,7 @@ function TokenDetailsContent() {
   const { address } = useAccount();
   const { role, status } = useUserStatus();
   const [showTransferDialog, setShowTransferDialog] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: uri } = useReadContract({
     abi: green1155Abi,
@@ -45,26 +45,31 @@ function TokenDetailsContent() {
     query: { enabled: Boolean(id) },
   });
 
-  const { data: balance, refetch } = useReadContract({
+  const { data: balance } = useReadContract({
     abi: green1155Abi,
     address: CONTRACT_ADDRESS,
     functionName: "balanceOf",
     args: id && address ? [address, id] : undefined,
-    query: { enabled: Boolean(id && address), refetchInterval: refreshKey > 0 ? 1000 : false },
+    query: { enabled: Boolean(id && address) },
   });
 
   const balanceNum = balance as unknown as bigint | undefined;
   const canTransfer = status === 2 && getValidRecipients(role).length > 0 && Boolean(balanceNum && balanceNum > BigInt(0));
 
-  useEffect(() => {
-    if (showTransferDialog === false && refreshKey > 0) {
-      refetch();
-    }
-  }, [showTransferDialog, refreshKey, refetch]);
-
   const handleTransferSuccess = () => {
-    setRefreshKey(k => k + 1);
-    setTimeout(() => refetch(), 1500);
+    setShowTransferDialog(false);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      window.location.reload();
+    }, 2000);
+  };
+
+  const handleOpenDialog = () => {
+    setShowTransferDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setShowTransferDialog(false);
   };
 
   if (!id) {
@@ -82,9 +87,20 @@ function TokenDetailsContent() {
     <div className="space-y-3">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Token #{id.toString()}</h2>
-        <Link href="/tokens" className="text-sm text-blue-600 hover:underline">
-          ← Volver a Tokens
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => window.location.reload()}
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Actualizar datos"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+          </button>
+          <Link href="/tokens" className="text-sm text-blue-600 hover:underline">
+            ← Volver a Tokens
+          </Link>
+        </div>
       </div>
 
       <div className="p-4 border rounded bg-white space-y-2">
@@ -111,7 +127,7 @@ function TokenDetailsContent() {
           
           {canTransfer ? (
             <button
-              onClick={() => setShowTransferDialog(true)}
+              onClick={handleOpenDialog}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Transferir
@@ -130,7 +146,7 @@ function TokenDetailsContent() {
 
       <StartTransferDialog
         isOpen={showTransferDialog}
-        onClose={() => setShowTransferDialog(false)}
+        onClose={handleCloseDialog}
         tokenId={id}
         tokenBalance={balanceNum ?? BigInt(0)}
         onSuccess={handleTransferSuccess}

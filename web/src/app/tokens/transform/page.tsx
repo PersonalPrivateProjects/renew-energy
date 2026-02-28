@@ -34,6 +34,7 @@ export default function TokenTransformPage() {
     unit: "kWh",
     name: "",
     description: "",
+    certification: "",
   });
   const [amount, setAmount] = useState<number>(0);
   const [childUri, setChildUri] = useState<string>("");
@@ -79,6 +80,7 @@ export default function TokenTransformPage() {
             unit: parsed.unit,
             name: "",
             description: "",
+            certification: parsed.certification,
           });
           return;
         }
@@ -90,6 +92,7 @@ export default function TokenTransformPage() {
       unit: "kWh",
       name: "",
       description: "",
+      certification: "",
     });
   };
 
@@ -104,6 +107,7 @@ export default function TokenTransformPage() {
         unit: "kWh",
         name: "",
         description: "",
+        certification: "",
       });
       setTimeout(() => loadInventory(), 2500);
     }
