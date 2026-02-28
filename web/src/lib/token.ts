@@ -68,7 +68,7 @@ export async function fetchTokenMetadataBatch(ids: bigint[]) {
       id: ids[i],
       uri: String(results[base]?.result ?? ""),
       featuresJson: String(results[base + 1]?.result ?? ""),
-      parentId: BigInt(results[base + 2]?.result ?? 0n),
+      parentId: BigInt(results[base + 2]?.result as string | number | bigint | boolean ?? 0),
     });
   }
   return out;

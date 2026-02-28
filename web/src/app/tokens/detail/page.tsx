@@ -53,7 +53,8 @@ function TokenDetailsContent() {
     query: { enabled: Boolean(id && address), refetchInterval: refreshKey > 0 ? 1000 : false },
   });
 
-  const canTransfer = status === 2 && getValidRecipients(role).length > 0 && (balance ?? BigInt(0)) > BigInt(0);
+  const balanceNum = balance as unknown as bigint | undefined;
+  const canTransfer = status === 2 && getValidRecipients(role).length > 0 && Boolean(balanceNum && balanceNum > BigInt(0));
 
   useEffect(() => {
     if (showTransferDialog === false && refreshKey > 0) {
@@ -131,7 +132,7 @@ function TokenDetailsContent() {
         isOpen={showTransferDialog}
         onClose={() => setShowTransferDialog(false)}
         tokenId={id}
-        tokenBalance={balance ?? BigInt(0)}
+        tokenBalance={balanceNum ?? BigInt(0)}
         onSuccess={handleTransferSuccess}
       />
     </div>
