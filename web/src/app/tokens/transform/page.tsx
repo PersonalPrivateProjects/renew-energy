@@ -7,9 +7,9 @@ import { useAccount, useWriteContract } from "wagmi";
 import { green1155Abi } from "../../../contracts/green1155.abi";
 import { CONTRACT_ADDRESS } from "../../../contracts";
 import { Role, UserStatus } from "../../../lib/enums";
-import { tryParseJson } from "../../../lib/json";
 import { useUserStatus } from "../../../hooks/useUserStatus";
 import { fetchUserBalancesAll, fetchTokenMetadataBatch } from "../../../lib/token";
+import { FeaturesJsonForm, featuresJsonToString, FeaturesJsonData, parseFeaturesJson } from "../../../components/FeaturesJsonForm";
 
 export default function TokenTransformPage() {
   const { address, isConnected } = useAccount();
@@ -20,9 +20,15 @@ export default function TokenTransformPage() {
   const [inventory, setInventory] = useState<{ id: bigint; balance: bigint }[]>([]);
   const [meta, setMeta] = useState<Record<string, { uri: string; featuresJson: string; parentId: bigint }>>({});
   const [parentId, setParentId] = useState<bigint | null>(null);
+  const [parentFeatures, setParentFeatures] = useState<FeaturesJsonData | null>(null);
+  const [featuresData, setFeaturesData] = useState<FeaturesJsonData>({
+    source: "",
+    unit: "kWh",
+    name: "",
+    description: "",
+  });
   const [amount, setAmount] = useState<number>(0);
   const [childUri, setChildUri] = useState<string>("");
-  const [features, setFeatures] = useState<string>('{"certificado":true,"kWh":100}');
   const [txHash, setTxHash] = useState<string>("");
 
   const canTransform = isConnected && status === UserStatus.Approved && role === Role.FACTORY;
@@ -52,12 +58,45 @@ export default function TokenTransformPage() {
     loadInventory();
   }, [loadInventory]);
 
+  const handleParentChange = (newParentId: bigint | null) => {
+    setParentId(newParentId);
+    if (newParentId) {
+      const parentMeta = meta[newParentId.toString()];
+      if (parentMeta?.featuresJson) {
+        const parsed = parseFeaturesJson(parentMeta.featuresJson);
+        if (parsed) {
+          setParentFeatures(parsed);
+          setFeaturesData({
+            source: parsed.source,
+            unit: parsed.unit,
+            name: "",
+            description: "",
+          });
+          return;
+        }
+      }
+    }
+    setParentFeatures(null);
+    setFeaturesData({
+      source: "",
+      unit: "kWh",
+      name: "",
+      description: "",
+    });
+  };
+
   useEffect(() => {
     if (isSuccess) {
       setParentId(null);
+      setParentFeatures(null);
       setAmount(0);
       setChildUri("");
-      setFeatures('{"certificado":true,"kWh":100}');
+      setFeaturesData({
+        source: "",
+        unit: "kWh",
+        name: "",
+        description: "",
+      });
       setTimeout(() => loadInventory(), 2500);
     }
   }, [isSuccess, loadInventory]);
@@ -66,15 +105,16 @@ export default function TokenTransformPage() {
     e.preventDefault();
     if (!canTransform || !parentId) return;
     if (!amount || amount <= 0) return alert("Amount debe ser > 0");
+    if (!featuresData.source) return alert("Debe seleccionar una fuente de energía");
+    if (!featuresData.name.trim()) return alert("El nombre es requerido");
 
-    const chk = tryParseJson(features);
-    if (!chk.ok) return alert("featuresJson inválido: " + chk.error);
+    const features = featuresJsonToString(featuresData);
 
     const hash = await writeContractAsync({
       abi: green1155Abi,
       address: CONTRACT_ADDRESS,
       functionName: "transform",
-      args: [parentId, BigInt(amount), childUri.trim(), features.trim()]
+      args: [parentId, BigInt(amount), childUri.trim(), features]
     });
     setTxHash(String(hash));
   };
@@ -116,7 +156,7 @@ export default function TokenTransformPage() {
               className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 appearance-none"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
               value={parentId ? parentId.toString() : ""}
-              onChange={(e) => setParentId(e.target.value ? BigInt(e.target.value) : null)}
+              onChange={(e) => handleParentChange(e.target.value ? BigInt(e.target.value) : null)}
             >
               <option value="">— Selecciona —</option>
               {inventory.map((it) => {
@@ -155,13 +195,19 @@ export default function TokenTransformPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">featuresJson (on-chain)</label>
-          <textarea
-            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm font-mono placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 resize-none"
-            rows={6}
-            value={features}
-            onChange={(e) => setFeatures(e.target.value)}
-          />
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Features</label>
+          {parentFeatures ? (
+            <FeaturesJsonForm
+              mode="transform"
+              parentFeatures={parentFeatures}
+              value={featuresData}
+              onChange={setFeaturesData}
+            />
+          ) : (
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-500">
+              Selecciona un token padre para ver sus features
+            </div>
+          )}
         </div>
 
         {error && <p className="text-sm text-red-600">{error.message}</p>}

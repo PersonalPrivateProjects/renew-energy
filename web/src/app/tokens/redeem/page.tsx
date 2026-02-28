@@ -219,12 +219,12 @@ export default function TokenRedeemPage() {
       </form>
 
       <div className="mt-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Historial de Tokens Consumidos</h3>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">Historial de Energía Consumida</h3>
         {loadingHistory && <div className="text-sm text-slate-500">Cargando historial…</div>}
         
         {!loadingHistory && redeemedHistory.length === 0 && (
           <div className="p-4 bg-white border border-slate-200 rounded-xl text-slate-500 text-sm">
-            No hay tokens consumidos aún.
+            No hay tokens de energía consumidos aún.
           </div>
         )}
 

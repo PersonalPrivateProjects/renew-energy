@@ -6,8 +6,8 @@ import { useAccount, useWriteContract } from "wagmi";
 import { green1155Abi } from "../../../contracts/green1155.abi";
 import { CONTRACT_ADDRESS } from "../../../contracts";
 import { Role, UserStatus } from "../../../lib/enums";
-import { tryParseJson } from "../../../lib/json";
 import { useUserStatus } from "../../../hooks/useUserStatus";
+import { FeaturesJsonForm, featuresJsonToString, FeaturesJsonData } from "../../../components/FeaturesJsonForm";
 
 export default function TokenCreatePage() {
   const { isConnected } = useAccount();
@@ -16,16 +16,13 @@ export default function TokenCreatePage() {
 
   const [amount, setAmount] = useState<number>(0);
   const [tokenUri, setTokenUri] = useState<string>("");
-  const [features, setFeatures] = useState<string>('{"kWh":100,"fuente":"solar"}');
+  const [featuresData, setFeaturesData] = useState<FeaturesJsonData>({
+    source: "solar",
+    unit: "kWh",
+    name: "",
+    description: "",
+  });
   const [txHash, setTxHash] = useState<string>("");
-
-  useEffect(() => {
-    if (isSuccess) {
-      setAmount(0);
-      setTokenUri("");
-      setFeatures('{"kWh":100,"fuente":"solar"}');
-    }
-  }, [isSuccess]);
 
   const canCreate =
     isConnected && status === UserStatus.Approved && role === Role.PRODUCER;
@@ -34,18 +31,32 @@ export default function TokenCreatePage() {
     e.preventDefault();
     if (!canCreate) return;
     if (!amount || amount <= 0) return alert("Amount debe ser > 0");
+    if (!featuresData.source) return alert("Debe seleccionar una fuente de energía");
+    if (!featuresData.name.trim()) return alert("El nombre es requerido");
 
-    const chk = tryParseJson(features);
-    if (!chk.ok) return alert("featuresJson inválido: " + chk.error);
+    const features = featuresJsonToString(featuresData);
 
     const hash = await writeContractAsync({
       abi: green1155Abi,
       address: CONTRACT_ADDRESS,
       functionName: "mintRaw",
-      args: [BigInt(amount), tokenUri.trim(), features.trim()]
+      args: [BigInt(amount), tokenUri.trim(), features]
     });
     setTxHash(String(hash));
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      setAmount(0);
+      setTokenUri("");
+      setFeaturesData({
+        source: "solar",
+        unit: "kWh",
+        name: "",
+        description: "",
+      });
+    }
+  }, [isSuccess]);
 
   if (!canCreate) {
     return (
@@ -84,14 +95,12 @@ export default function TokenCreatePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">featuresJson (on-chain)</label>
-          <textarea
-            className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 text-sm font-mono placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all duration-200 resize-none"
-            rows={6}
-            value={features}
-            onChange={(e) => setFeatures(e.target.value)}
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Features</label>
+          <FeaturesJsonForm
+            mode="create"
+            value={featuresData}
+            onChange={setFeaturesData}
           />
-          <p className="text-xs text-slate-500 mt-2">Ej: {"{ \"kWh\": 100, \"fuente\": \"solar\" }"}</p>
         </div>
 
         {error && <p className="text-sm text-red-600">{error.message}</p>}
