@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "sonner";
+
 import Web3Provider from "../contexts/Web3Provider";
 import NavBar from "../components/NavBar";
 import Web3DiagnosticsDrawer from "../components/Web3DiagnosticsDrawer";
@@ -21,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
           <Web3DiagnosticsDrawer />
+          <Toaster position="top-right" richColors closeButton />
         </Web3Provider>
       </body>
     </html>

@@ -1,9 +1,10 @@
 // src/app/tokens/detail/page.tsx
 "use client";
 
-import { Suspense, useState, useRef } from "react";
+import { Suspense, useState } from "react";
 import { prettifyJson } from "../../../lib/json";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAccount, useReadContract } from "wagmi";
 import { CONTRACT_ADDRESS, green1155Abi } from "../../../contracts";
 import { useUserStatus } from "../../../hooks/useUserStatus";
@@ -12,6 +13,7 @@ import { StartTransferDialog } from "../../../components/StartTransferDialog";
 import Link from "next/link";
 
 function TokenDetailsContent() {
+  const router = useRouter();
   const sp = useSearchParams();
   const idParam = sp.get("id");
   const id = idParam ? BigInt(idParam) : null;
@@ -19,7 +21,7 @@ function TokenDetailsContent() {
   const { address } = useAccount();
   const { role, status } = useUserStatus();
   const [showTransferDialog, setShowTransferDialog] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [transferDialogKey, setTransferDialogKey] = useState(0);
 
   const { data: uri } = useReadContract({
     abi: green1155Abi,
@@ -58,13 +60,11 @@ function TokenDetailsContent() {
 
   const handleTransferSuccess = () => {
     setShowTransferDialog(false);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      window.location.reload();
-    }, 2000);
+    router.push("/transfers");
   };
 
   const handleOpenDialog = () => {
+    setTransferDialogKey((k) => k + 1);
     setShowTransferDialog(true);
   };
 
@@ -145,6 +145,7 @@ function TokenDetailsContent() {
       )}
 
       <StartTransferDialog
+        key={transferDialogKey}
         isOpen={showTransferDialog}
         onClose={handleCloseDialog}
         tokenId={id}

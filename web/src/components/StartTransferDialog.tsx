@@ -72,8 +72,7 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleTransfer = () => {
     setError("");
 
     if (!address || status !== 2) {
@@ -116,7 +115,7 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
             Tu rol no puede iniciar transferencias. Solo Producer, Factory y Retailer pueden hacerlo.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Destinatario ( {validRecipientRoles.map(r => roleLabel(r)).join(" o ")} )
@@ -185,14 +184,15 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
                 Cancelar
               </button>
               <button
-                type="submit"
-                disabled={isPending || approvedAddresses.length === 0}
+                type="button"
+                onClick={handleTransfer}
+                disabled={isPending || approvedAddresses.length === 0 || !selectedRecipient || !amount}
                 className="px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {isPending ? "Iniciando..." : "Transferir"}
               </button>
             </div>
-          </form>
+          </div>
         )}
       </div>
     </div>
