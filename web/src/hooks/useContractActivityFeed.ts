@@ -5,6 +5,10 @@ import { parseEventLogs } from "viem";
 import { usePublicClient } from "wagmi";
 import { CONTRACT_ADDRESS, green1155Abi } from "../contracts";
 
+function stringifyWithBigInt(value: unknown): string {
+    return JSON.stringify(value, (_, v) => (typeof v === "bigint" ? v.toString() : v));
+}
+
 export type ContractActivityItem = {
     eventName: string;
     txHash?: `0x${string}`;
@@ -52,7 +56,7 @@ export function useContractActivityFeed(limit = 30) {
                     blockNumber: ev.blockNumber ?? 0n,
                     logIndex: Number(ev.logIndex ?? 0),
                     createdAt: Date.now(),
-                    argsPreview: JSON.stringify(ev.args ?? {}),
+                    argsPreview: stringifyWithBigInt(ev.args ?? {}),
                 }));
 
                 mapped.sort((a, b) => {
