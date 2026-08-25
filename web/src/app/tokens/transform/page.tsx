@@ -1,9 +1,10 @@
 // src/app/tokens/transform/page.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Address } from "viem";
 import { useAccount, useWriteContract } from "wagmi";
+import { toast } from "sonner";
 import { green1155Abi } from "../../../contracts/green1155.abi";
 import { CONTRACT_ADDRESS } from "../../../contracts";
 import { Role, UserStatus } from "../../../lib/enums";
@@ -39,6 +40,7 @@ export default function TokenTransformPage() {
   const [amount, setAmount] = useState<number>(0);
   const [childUri, setChildUri] = useState<string>("");
   const [txHash, setTxHash] = useState<string>("");
+  const successToastHashRef = useRef<string | null>(null);
 
   const canTransform = isConnected && status === UserStatus.Approved && role === Role.FACTORY;
 
@@ -112,6 +114,14 @@ export default function TokenTransformPage() {
       setTimeout(() => loadInventory(), 2500);
     }
   }, [isSuccess, loadInventory]);
+
+  useEffect(() => {
+    if (!isSuccess || !txHash) return;
+    if (successToastHashRef.current === txHash) return;
+
+    successToastHashRef.current = txHash;
+    toast.success("Transformación completada exitosamente");
+  }, [isSuccess, txHash]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

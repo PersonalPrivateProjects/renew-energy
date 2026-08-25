@@ -1,9 +1,10 @@
 // src/app/tokens/redeem/page.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Address, parseEventLogs } from "viem";
 import { useAccount, useWriteContract, usePublicClient } from "wagmi";
+import { toast } from "sonner";
 import { green1155Abi } from "../../../contracts/green1155.abi";
 import { CONTRACT_ADDRESS } from "../../../contracts";
 import { Role, UserStatus } from "../../../lib/enums";
@@ -40,6 +41,7 @@ export default function TokenRedeemPage() {
   const [selectedTokenId, setSelectedTokenId] = useState<bigint | null>(null);
   const [amount, setAmount] = useState<number>(0);
   const [txHash, setTxHash] = useState<string>("");
+  const successToastHashRef = useRef<string | null>(null);
 
   const canRedeem = isConnected && status === UserStatus.Approved && role === Role.CONSUMER;
 
@@ -122,6 +124,14 @@ export default function TokenRedeemPage() {
       }, 2500);
     }
   }, [isSuccess, loadInventory, loadRedeemedHistory]);
+
+  useEffect(() => {
+    if (!isSuccess || !txHash) return;
+    if (successToastHashRef.current === txHash) return;
+
+    successToastHashRef.current = txHash;
+    toast.success("Redención completada exitosamente");
+  }, [isSuccess, txHash]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

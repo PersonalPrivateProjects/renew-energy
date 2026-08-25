@@ -4,6 +4,7 @@ import Link from "next/link";
 import ConnectButton from "./ConnectButton";
 import { useAccount } from "wagmi";
 import { useIsAdmin } from "../hooks/useIsAdmin";
+import NetworkStatusPill from "./NetworkStatusPill";
 
 function LightningIcon({ className }: { className?: string }) {
   return (
@@ -81,7 +82,10 @@ export default function NavBar() {
               </>
             )}
           </div>
-          <ConnectButton />
+          <div className="flex items-center gap-2">
+            <NetworkStatusPill />
+            <ConnectButton />
+          </div>
         </div>
       </div>
     </nav>

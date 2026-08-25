@@ -5,7 +5,9 @@ import { TransferEvent } from "../hooks/useTransfers";
 import { transferStatusLabel, roleLabel } from "../lib/enums";
 import { useAcceptTransfer, useRejectTransfer, useCancelTransfer } from "../hooks/useTransfers";
 import { useUserStatus } from "../hooks/useUserStatus";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { SkeletonLine } from "./ContractSkeleton";
+import { toast } from "sonner";
 
 interface TransferRowProps {
   transfer: TransferEvent;
@@ -27,10 +29,13 @@ function XMarkIcon({ className }: { className?: string }) {
 export function TransferRow({ transfer, onRefresh }: TransferRowProps) {
   const { address } = useAccount();
   const { role } = useUserStatus(transfer.from);
-  const { accept, isPending: isAccepting, isSuccess: isAcceptSuccess } = useAcceptTransfer();
-  const { reject, isPending: isRejecting, isSuccess: isRejectSuccess } = useRejectTransfer();
-  const { cancel, isPending: isCanceling, isSuccess: isCancelSuccess } = useCancelTransfer();
+  const { accept, isPending: isAccepting, isSuccess: isAcceptSuccess, hash: acceptHash } = useAcceptTransfer();
+  const { reject, isPending: isRejecting, isSuccess: isRejectSuccess, hash: rejectHash } = useRejectTransfer();
+  const { cancel, isPending: isCanceling, isSuccess: isCancelSuccess, hash: cancelHash } = useCancelTransfer();
   const [actioned, setActioned] = useState(false);
+  const acceptToastHashRef = useRef<string | null>(null);
+  const rejectToastHashRef = useRef<string | null>(null);
+  const cancelToastHashRef = useRef<string | null>(null);
 
   const isReceiver = address === transfer.to;
   const isSender = address === transfer.from;
@@ -47,6 +52,30 @@ export function TransferRow({ transfer, onRefresh }: TransferRowProps) {
       setTimeout(() => onRefresh(), 1500);
     }
   }, [isAcceptSuccess, isRejectSuccess, isCancelSuccess, onRefresh]);
+
+  useEffect(() => {
+    if (!isAcceptSuccess || !acceptHash) return;
+    if (acceptToastHashRef.current === acceptHash) return;
+
+    acceptToastHashRef.current = acceptHash;
+    toast.success("Transferencia aceptada");
+  }, [isAcceptSuccess, acceptHash]);
+
+  useEffect(() => {
+    if (!isRejectSuccess || !rejectHash) return;
+    if (rejectToastHashRef.current === rejectHash) return;
+
+    rejectToastHashRef.current = rejectHash;
+    toast.success("Transferencia rechazada");
+  }, [isRejectSuccess, rejectHash]);
+
+  useEffect(() => {
+    if (!isCancelSuccess || !cancelHash) return;
+    if (cancelToastHashRef.current === cancelHash) return;
+
+    cancelToastHashRef.current = cancelHash;
+    toast.success("Transferencia cancelada");
+  }, [isCancelSuccess, cancelHash]);
 
   useEffect(() => {
     if (!isPending) {
@@ -192,12 +221,14 @@ interface TransferListProps {
 export function TransferList({ transfers, loading, emptyMessage = "No hay transferencias", onRefresh }: TransferListProps) {
   if (loading) {
     return (
-      <div className="text-center py-8 text-gray-500 flex items-center justify-center gap-2">
-        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        Cargando transferencias...
+      <div className="space-y-3 py-2">
+        {[0, 1, 2].map((id) => (
+          <div key={id} className="glass-card rounded-xl p-4 space-y-2">
+            <SkeletonLine className="h-4 w-1/3" />
+            <SkeletonLine className="h-3 w-2/3" />
+            <SkeletonLine className="h-3 w-1/2" />
+          </div>
+        ))}
       </div>
     );
   }

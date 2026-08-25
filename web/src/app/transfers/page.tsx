@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import { useTransfersInbox, useTransfersOutbox, useTransfersHistory } from "../../hooks/useTransfers";
 import { TransferList } from "../../components/TransferList";
 import { useUserStatus } from "../../hooks/useUserStatus";
-import Link from "next/link";
 import { UserStatus } from "../../lib/enums";
+import ContractEventsFeed from "../../components/ContractEventsFeed";
 
 function ChainIcon({ className }: { className?: string }) {
   return (
@@ -144,6 +144,8 @@ export default function TransfersPage() {
           <li><strong>Historial:</strong> Todas tus transferencias (enviadas y recibidas)</li>
         </ul>
       </div>
+
+      <ContractEventsFeed />
     </div>
   );
 }

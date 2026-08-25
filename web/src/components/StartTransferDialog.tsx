@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAccount } from "wagmi";
+import { toast } from "sonner";
 import { getValidRecipients, roleLabel } from "../lib/enums";
 import { useUserStatus } from "../hooks/useUserStatus";
 import { useInitiateTransfer, useApprovedUsersByRole } from "../hooks/useTransfers";
+import TransactionLifecycleCard from "./TransactionLifecycleCard";
+import { useTransactionLifecycle } from "../hooks/useTransactionLifecycle";
+import { useDiagnosticsStore } from "../lib/diagnosticsStore";
 
 interface StartTransferDialogProps {
   isOpen: boolean;
@@ -17,7 +21,14 @@ interface StartTransferDialogProps {
 export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, onSuccess }: StartTransferDialogProps) {
   const { address } = useAccount();
   const { role, status } = useUserStatus();
-  const { initiate, isPending, isSuccess, hash } = useInitiateTransfer();
+  const { initiate, isPending, isSuccess, hash, error: txError } = useInitiateTransfer();
+  const upsertTx = useDiagnosticsStore((s) => s.upsertTx);
+
+  const { phase, receipt } = useTransactionLifecycle({
+    hash,
+    isWriting: isPending,
+    error: txError ?? null,
+  });
   
   const validRecipientRoles = getValidRecipients(role);
   
@@ -34,6 +45,7 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
   const [selectedRecipient, setSelectedRecipient] = useState<`0x${string}` | "">("");
   const [amount, setAmount] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const successToastHashRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isSuccess) {
@@ -47,10 +59,30 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
     }
   }, [isSuccess, onSuccess, onClose]);
 
+  useEffect(() => {
+    if (!isSuccess || !hash) return;
+    if (successToastHashRef.current === hash) return;
+
+    successToastHashRef.current = hash;
+    toast.success("Transferencia iniciada exitosamente");
+  }, [isSuccess, hash]);
+
+  useEffect(() => {
+    if (!hash) return;
+    if (phase === "idle") return;
+
+    upsertTx({
+      hash,
+      phase: phase === "error" ? "error" : phase === "success" ? "success" : phase === "confirming" ? "confirming" : "sent",
+      updatedAt: Date.now(),
+      gasUsed: receipt?.gasUsed?.toString(),
+      errorMessage: txError?.message,
+    });
+  }, [hash, phase, receipt?.gasUsed, txError?.message, upsertTx]);
+
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleTransfer = () => {
     setError("");
 
     if (!address || status !== 2) {
@@ -93,7 +125,7 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
             Tu rol no puede iniciar transferencias. Solo Producer, Factory y Retailer pueden hacerlo.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Destinatario ( {validRecipientRoles.map(r => roleLabel(r)).join(" o ")} )
@@ -145,6 +177,13 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
               </div>
             )}
 
+            <TransactionLifecycleCard
+              phase={phase}
+              hash={hash}
+              errorMessage={txError?.message}
+              gasUsed={receipt?.gasUsed?.toString()}
+            />
+
             <div className="flex gap-3 justify-end pt-2">
               <button
                 type="button"
@@ -155,14 +194,15 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
                 Cancelar
               </button>
               <button
-                type="submit"
-                disabled={isPending || approvedAddresses.length === 0}
+                type="button"
+                onClick={handleTransfer}
+                disabled={isPending || approvedAddresses.length === 0 || !selectedRecipient || !amount}
                 className="px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {isPending ? "Iniciando..." : "Transferir"}
               </button>
             </div>
-          </form>
+          </div>
         )}
       </div>
     </div>
