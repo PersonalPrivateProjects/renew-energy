@@ -3,6 +3,7 @@ import "./globals.css";
 import Web3Provider from "../contexts/Web3Provider";
 import NavBar from "../components/NavBar";
 import Web3DiagnosticsDrawer from "../components/Web3DiagnosticsDrawer";
+import SessionRouteGuard from "../components/SessionRouteGuard";
 
 export const metadata: Metadata = {
   title: "GreenChain - Renewable Energy Traceability",
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <body suppressHydrationWarning={true} className="pattern-grid">
         <Web3Provider>
+          <SessionRouteGuard />
           <NavBar />
           <main className="container mx-auto px-4 py-8 min-h-[calc(100vh-4rem)]">
             {children}
