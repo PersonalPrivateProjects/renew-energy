@@ -2,12 +2,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { green1155Abi } from "../../../contracts/green1155.abi";
 import { CONTRACT_ADDRESS } from "../../../contracts";
 import { Role, UserStatus } from "../../../lib/enums";
 import { useUserStatus } from "../../../hooks/useUserStatus";
 import { FeaturesJsonForm, featuresJsonToString, FeaturesJsonData } from "../../../components/FeaturesJsonForm";
+import TransactionLifecycleCard from "../../../components/TransactionLifecycleCard";
+import { useTransactionLifecycle } from "../../../hooks/useTransactionLifecycle";
+import { useDiagnosticsStore } from "../../../lib/diagnosticsStore";
 
 function SunIcon({ className }: { className?: string }) {
   return (
@@ -18,9 +21,11 @@ function SunIcon({ className }: { className?: string }) {
 }
 
 export default function TokenCreatePage() {
-  const { isConnected } = useAccount();
+  const { isConnected, address, chainId } = useAccount();
+  const publicClient = usePublicClient();
   const { role, status } = useUserStatus();
   const { writeContractAsync, isPending, isSuccess, error } = useWriteContract();
+  const upsertTx = useDiagnosticsStore((s) => s.upsertTx);
 
   const [amount, setAmount] = useState<number>(0);
   const [tokenUri, setTokenUri] = useState<string>("");
@@ -32,6 +37,14 @@ export default function TokenCreatePage() {
     certification: "",
   });
   const [txHash, setTxHash] = useState<string>("");
+  const [txHashTyped, setTxHashTyped] = useState<`0x${string}` | undefined>(undefined);
+  const [gasEstimate, setGasEstimate] = useState<string>("");
+
+  const { phase, receipt } = useTransactionLifecycle({
+    hash: txHashTyped,
+    isWriting: isPending,
+    error: error ?? null,
+  });
 
   const canCreate =
     isConnected && status === UserStatus.Approved && role === Role.PRODUCER;
@@ -45,6 +58,17 @@ export default function TokenCreatePage() {
 
     const features = featuresJsonToString(featuresData);
 
+    if (publicClient && address) {
+      const estimate = await publicClient.estimateContractGas({
+        account: address,
+        abi: green1155Abi,
+        address: CONTRACT_ADDRESS,
+        functionName: "mintRaw",
+        args: [BigInt(amount), tokenUri.trim(), features],
+      });
+      setGasEstimate(estimate.toString());
+    }
+
     const hash = await writeContractAsync({
       abi: green1155Abi,
       address: CONTRACT_ADDRESS,
@@ -52,6 +76,7 @@ export default function TokenCreatePage() {
       args: [BigInt(amount), tokenUri.trim(), features]
     });
     setTxHash(String(hash));
+    setTxHashTyped(hash);
   };
 
   useEffect(() => {
@@ -67,6 +92,21 @@ export default function TokenCreatePage() {
       });
     }
   }, [isSuccess]);
+
+  useEffect(() => {
+    if (!txHashTyped) return;
+    if (phase === "idle") return;
+
+    upsertTx({
+      hash: txHashTyped,
+      phase: phase === "error" ? "error" : phase === "success" ? "success" : phase === "confirming" ? "confirming" : "sent",
+      updatedAt: Date.now(),
+      chainId,
+      gasEstimate: gasEstimate || undefined,
+      gasUsed: receipt?.gasUsed?.toString(),
+      errorMessage: error?.message,
+    });
+  }, [txHashTyped, phase, chainId, gasEstimate, receipt?.gasUsed, error?.message, upsertTx]);
 
   if (!canCreate) {
     return (
@@ -167,6 +207,14 @@ export default function TokenCreatePage() {
               <p className="text-xs font-mono text-emerald-600 mt-1 break-all">{txHash}</p>
             </div>
           )}
+
+          <TransactionLifecycleCard
+            phase={phase}
+            hash={txHashTyped}
+            errorMessage={error?.message}
+            gasEstimate={gasEstimate || undefined}
+            gasUsed={receipt?.gasUsed?.toString()}
+          />
 
           <button
             type="submit"

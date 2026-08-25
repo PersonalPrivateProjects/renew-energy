@@ -6,6 +6,7 @@ import { transferStatusLabel, roleLabel } from "../lib/enums";
 import { useAcceptTransfer, useRejectTransfer, useCancelTransfer } from "../hooks/useTransfers";
 import { useUserStatus } from "../hooks/useUserStatus";
 import { useState, useEffect } from "react";
+import { SkeletonLine } from "./ContractSkeleton";
 
 interface TransferRowProps {
   transfer: TransferEvent;
@@ -192,12 +193,14 @@ interface TransferListProps {
 export function TransferList({ transfers, loading, emptyMessage = "No hay transferencias", onRefresh }: TransferListProps) {
   if (loading) {
     return (
-      <div className="text-center py-8 text-gray-500 flex items-center justify-center gap-2">
-        <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        Cargando transferencias...
+      <div className="space-y-3 py-2">
+        {[0, 1, 2].map((id) => (
+          <div key={id} className="glass-card rounded-xl p-4 space-y-2">
+            <SkeletonLine className="h-4 w-1/3" />
+            <SkeletonLine className="h-3 w-2/3" />
+            <SkeletonLine className="h-3 w-1/2" />
+          </div>
+        ))}
       </div>
     );
   }

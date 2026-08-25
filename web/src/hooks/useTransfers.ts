@@ -113,43 +113,43 @@ export function useTransfersEvents() {
 export function useTransfersInbox() {
   const { address } = useAccount();
   const { transfers, loading, error, refetch } = useTransfersEvents();
-  
-  const inbox = useMemo(() => 
+
+  const inbox = useMemo(() =>
     transfers.filter(t => t.to === address && t.status === TransferStatus.Pending),
     [transfers, address]
   );
-  
+
   return { transfers: inbox, loading, error, refetch };
 }
 
 export function useTransfersOutbox() {
   const { address } = useAccount();
   const { transfers, loading, error, refetch } = useTransfersEvents();
-  
-  const outbox = useMemo(() => 
+
+  const outbox = useMemo(() =>
     transfers.filter(t => t.from === address && t.status === TransferStatus.Pending),
     [transfers, address]
   );
-  
+
   return { transfers: outbox, loading, error, refetch };
 }
 
 export function useTransfersHistory() {
   const { address } = useAccount();
   const { transfers, loading, error, refetch } = useTransfersEvents();
-  
-  const history = useMemo(() => 
+
+  const history = useMemo(() =>
     transfers.filter(t => (t.from === address || t.to === address) && t.status !== TransferStatus.Pending),
     [transfers, address]
   );
-  
+
   return { transfers: history, loading, error, refetch };
 }
 
 export function useInitiateTransfer() {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContract, isPending, data: hash, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
-  
+
   const initiate = (to: `0x${string}`, tokenId: bigint, amount: bigint) => {
     writeContract({
       abi: green1155Abi,
@@ -158,14 +158,14 @@ export function useInitiateTransfer() {
       args: [to, tokenId, amount]
     });
   };
-  
-  return { initiate, isPending, hash, isConfirming, isSuccess };
+
+  return { initiate, isPending, hash, isConfirming, isSuccess, error };
 }
 
 export function useAcceptTransfer() {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContract, isPending, data: hash, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
-  
+
   const accept = (transferId: bigint) => {
     writeContract({
       abi: green1155Abi,
@@ -174,14 +174,14 @@ export function useAcceptTransfer() {
       args: [transferId]
     });
   };
-  
-  return { accept, isPending, hash, isConfirming, isSuccess };
+
+  return { accept, isPending, hash, isConfirming, isSuccess, error };
 }
 
 export function useRejectTransfer() {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContract, isPending, data: hash, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
-  
+
   const reject = (transferId: bigint) => {
     writeContract({
       abi: green1155Abi,
@@ -190,14 +190,14 @@ export function useRejectTransfer() {
       args: [transferId]
     });
   };
-  
-  return { reject, isPending, hash, isConfirming, isSuccess };
+
+  return { reject, isPending, hash, isConfirming, isSuccess, error };
 }
 
 export function useCancelTransfer() {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContract, isPending, data: hash, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
-  
+
   const cancel = (transferId: bigint) => {
     writeContract({
       abi: green1155Abi,
@@ -206,8 +206,8 @@ export function useCancelTransfer() {
       args: [transferId]
     });
   };
-  
-  return { cancel, isPending, hash, isConfirming, isSuccess };
+
+  return { cancel, isPending, hash, isConfirming, isSuccess, error };
 }
 
 export function useApprovedUsersByRole(targetRole: Role) {

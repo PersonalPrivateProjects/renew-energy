@@ -5,6 +5,9 @@ import { useAccount } from "wagmi";
 import { getValidRecipients, roleLabel } from "../lib/enums";
 import { useUserStatus } from "../hooks/useUserStatus";
 import { useInitiateTransfer, useApprovedUsersByRole } from "../hooks/useTransfers";
+import TransactionLifecycleCard from "./TransactionLifecycleCard";
+import { useTransactionLifecycle } from "../hooks/useTransactionLifecycle";
+import { useDiagnosticsStore } from "../lib/diagnosticsStore";
 
 interface StartTransferDialogProps {
   isOpen: boolean;
@@ -17,7 +20,14 @@ interface StartTransferDialogProps {
 export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, onSuccess }: StartTransferDialogProps) {
   const { address } = useAccount();
   const { role, status } = useUserStatus();
-  const { initiate, isPending, isSuccess, hash } = useInitiateTransfer();
+  const { initiate, isPending, isSuccess, hash, error: txError } = useInitiateTransfer();
+  const upsertTx = useDiagnosticsStore((s) => s.upsertTx);
+
+  const { phase, receipt } = useTransactionLifecycle({
+    hash,
+    isWriting: isPending,
+    error: txError ?? null,
+  });
   
   const validRecipientRoles = getValidRecipients(role);
   
@@ -46,6 +56,19 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
       }, 1500);
     }
   }, [isSuccess, onSuccess, onClose]);
+
+  useEffect(() => {
+    if (!hash) return;
+    if (phase === "idle") return;
+
+    upsertTx({
+      hash,
+      phase: phase === "error" ? "error" : phase === "success" ? "success" : phase === "confirming" ? "confirming" : "sent",
+      updatedAt: Date.now(),
+      gasUsed: receipt?.gasUsed?.toString(),
+      errorMessage: txError?.message,
+    });
+  }, [hash, phase, receipt?.gasUsed, txError?.message, upsertTx]);
 
   if (!isOpen) return null;
 
@@ -144,6 +167,13 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
                 Transferencia iniciada exitosamente. Hash: {hash?.slice(0, 10)}...
               </div>
             )}
+
+            <TransactionLifecycleCard
+              phase={phase}
+              hash={hash}
+              errorMessage={txError?.message}
+              gasUsed={receipt?.gasUsed?.toString()}
+            />
 
             <div className="flex gap-3 justify-end pt-2">
               <button

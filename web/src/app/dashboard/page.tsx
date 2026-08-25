@@ -5,6 +5,8 @@ import { useAccount } from "wagmi";
 import { useUserStatus } from "../../hooks/useUserStatus";
 import { Role, UserStatus, roleLabel } from "../../lib/enums";
 import { shortAddress } from "../../lib/utils";
+import ContractMetricsBento from "../../components/ContractMetricsBento";
+import ContractEventsFeed from "../../components/ContractEventsFeed";
 
 function RoleBadge({ role }: { role: Role }) {
   const colors: Record<Role, { bg: string; text: string; icon: React.ReactNode }> = {
@@ -302,6 +304,11 @@ export default function DashboardPage() {
 
       {getKPIs()}
 
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-gray-800">Métricas on-chain</h3>
+        <ContractMetricsBento />
+      </div>
+
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -351,6 +358,11 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-gray-800">Actividad en tiempo real</h3>
+        <ContractEventsFeed />
+      </div>
     </div>
   );
 }
