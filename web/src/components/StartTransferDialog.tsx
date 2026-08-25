@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAccount } from "wagmi";
+import { toast } from "sonner";
 import { getValidRecipients, roleLabel } from "../lib/enums";
 import { useUserStatus } from "../hooks/useUserStatus";
 import { useInitiateTransfer, useApprovedUsersByRole } from "../hooks/useTransfers";
@@ -44,6 +45,7 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
   const [selectedRecipient, setSelectedRecipient] = useState<`0x${string}` | "">("");
   const [amount, setAmount] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const successToastHashRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isSuccess) {
@@ -56,6 +58,14 @@ export function StartTransferDialog({ isOpen, onClose, tokenId, tokenBalance, on
       }, 1500);
     }
   }, [isSuccess, onSuccess, onClose]);
+
+  useEffect(() => {
+    if (!isSuccess || !hash) return;
+    if (successToastHashRef.current === hash) return;
+
+    successToastHashRef.current = hash;
+    toast.success("Transferencia iniciada exitosamente");
+  }, [isSuccess, hash]);
 
   useEffect(() => {
     if (!hash) return;

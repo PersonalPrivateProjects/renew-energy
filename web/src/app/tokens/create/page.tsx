@@ -1,8 +1,9 @@
 // src/app/tokens/create/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { toast } from "sonner";
 import { green1155Abi } from "../../../contracts/green1155.abi";
 import { CONTRACT_ADDRESS } from "../../../contracts";
 import { Role, UserStatus } from "../../../lib/enums";
@@ -39,6 +40,7 @@ export default function TokenCreatePage() {
   const [txHash, setTxHash] = useState<string>("");
   const [txHashTyped, setTxHashTyped] = useState<`0x${string}` | undefined>(undefined);
   const [gasEstimate, setGasEstimate] = useState<string>("");
+  const successToastHashRef = useRef<string | null>(null);
 
   const { phase, receipt } = useTransactionLifecycle({
     hash: txHashTyped,
@@ -92,6 +94,14 @@ export default function TokenCreatePage() {
       });
     }
   }, [isSuccess]);
+
+  useEffect(() => {
+    if (!isSuccess || !txHash) return;
+    if (successToastHashRef.current === txHash) return;
+
+    successToastHashRef.current = txHash;
+    toast.success("Token creado exitosamente");
+  }, [isSuccess, txHash]);
 
   useEffect(() => {
     if (!txHashTyped) return;

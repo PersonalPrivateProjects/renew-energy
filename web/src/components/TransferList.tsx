@@ -5,8 +5,9 @@ import { TransferEvent } from "../hooks/useTransfers";
 import { transferStatusLabel, roleLabel } from "../lib/enums";
 import { useAcceptTransfer, useRejectTransfer, useCancelTransfer } from "../hooks/useTransfers";
 import { useUserStatus } from "../hooks/useUserStatus";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SkeletonLine } from "./ContractSkeleton";
+import { toast } from "sonner";
 
 interface TransferRowProps {
   transfer: TransferEvent;
@@ -28,10 +29,13 @@ function XMarkIcon({ className }: { className?: string }) {
 export function TransferRow({ transfer, onRefresh }: TransferRowProps) {
   const { address } = useAccount();
   const { role } = useUserStatus(transfer.from);
-  const { accept, isPending: isAccepting, isSuccess: isAcceptSuccess } = useAcceptTransfer();
-  const { reject, isPending: isRejecting, isSuccess: isRejectSuccess } = useRejectTransfer();
-  const { cancel, isPending: isCanceling, isSuccess: isCancelSuccess } = useCancelTransfer();
+  const { accept, isPending: isAccepting, isSuccess: isAcceptSuccess, hash: acceptHash } = useAcceptTransfer();
+  const { reject, isPending: isRejecting, isSuccess: isRejectSuccess, hash: rejectHash } = useRejectTransfer();
+  const { cancel, isPending: isCanceling, isSuccess: isCancelSuccess, hash: cancelHash } = useCancelTransfer();
   const [actioned, setActioned] = useState(false);
+  const acceptToastHashRef = useRef<string | null>(null);
+  const rejectToastHashRef = useRef<string | null>(null);
+  const cancelToastHashRef = useRef<string | null>(null);
 
   const isReceiver = address === transfer.to;
   const isSender = address === transfer.from;
@@ -48,6 +52,30 @@ export function TransferRow({ transfer, onRefresh }: TransferRowProps) {
       setTimeout(() => onRefresh(), 1500);
     }
   }, [isAcceptSuccess, isRejectSuccess, isCancelSuccess, onRefresh]);
+
+  useEffect(() => {
+    if (!isAcceptSuccess || !acceptHash) return;
+    if (acceptToastHashRef.current === acceptHash) return;
+
+    acceptToastHashRef.current = acceptHash;
+    toast.success("Transferencia aceptada");
+  }, [isAcceptSuccess, acceptHash]);
+
+  useEffect(() => {
+    if (!isRejectSuccess || !rejectHash) return;
+    if (rejectToastHashRef.current === rejectHash) return;
+
+    rejectToastHashRef.current = rejectHash;
+    toast.success("Transferencia rechazada");
+  }, [isRejectSuccess, rejectHash]);
+
+  useEffect(() => {
+    if (!isCancelSuccess || !cancelHash) return;
+    if (cancelToastHashRef.current === cancelHash) return;
+
+    cancelToastHashRef.current = cancelHash;
+    toast.success("Transferencia cancelada");
+  }, [isCancelSuccess, cancelHash]);
 
   useEffect(() => {
     if (!isPending) {
